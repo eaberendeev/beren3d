@@ -139,8 +139,8 @@ static void update_fieldsB(const Array3D<double3>& fieldE, Array3D<double3>& fie
 }
 
 */
-void solver_FDTD_PML(Array3D<double3>& fieldE, Array3D<double3>& fieldB,
-	Array3D<double3>& fieldEz, Array3D<double3>& fieldBz, const Array3D<double3>& fieldJ, const World& world){
+void solver_FDTD_PML(Field3d& fieldE, Field3d& fieldB,
+	Field3d fieldEz, Field3d& fieldBz, const Field3d& fieldJ, const World& world){
 /*    long i, j;
     const double rdx = 1. / Dx;
     const double rdy = 1. / Dy;

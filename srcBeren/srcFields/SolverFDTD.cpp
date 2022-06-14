@@ -1,8 +1,8 @@
 #include "World.h"
 #include "Mesh.h"
 #include "SolverFDTD.h"
-
-static void update_fieldsB(const Array3D<double3>& fieldE, Array3D<double3>& fieldB){
+#include "Vec.h"
+static void update_fieldsB(const Field3d& fieldE, Field3d& fieldB){
     long i, j, k;
     const double dtp = 0.5 * Dt;
     const double rdx = 1. / Dx;
@@ -12,7 +12,7 @@ static void update_fieldsB(const Array3D<double3>& fieldE, Array3D<double3>& fie
     const long size_d2 = fieldB.size().y();
     const long size_d3 = fieldB.size().z();
 	
-
+/*
     for( i = 0; i < size_d1 - 1; ++i ){
         for( j = 0; j < size_d2 - 1; ++j ){
             for( k = 0; k < size_d3 - 1; ++k ){
@@ -53,11 +53,11 @@ static void update_fieldsB(const Array3D<double3>& fieldE, Array3D<double3>& fie
                                            - rdy * (fieldE(i,j+1,k).x() - fieldE(i,j,k).x() ) );
         }
     }
-
+*/
 }
 
 
-void solver_FDTD(Array3D<double3>& fieldE, Array3D<double3>& fieldB, const Array3D<double3>& fieldJ, const World& world){
+void solver_FDTD(Field3d& fieldE, Field3d& fieldB, const Field3d& fieldJ, const World& world){
     long i, j, k;
     const double rdx = 1. / Dx;
     const double rdy = 1. / Dy;
@@ -67,7 +67,7 @@ void solver_FDTD(Array3D<double3>& fieldE, Array3D<double3>& fieldB, const Array
     const long size_d3 = fieldE.size().z();
     static Array3D<double> Ez0(2,size_d2,size_d3);
     static Array3D<double> Ey0(2,size_d2,size_d3);
-
+/*
     for (j = 0; j < size_d2; ++j){
         for (k = 0; k < size_d3; ++k){
     		Ez0(0,j,k) = fieldE(1,j,k).z();
@@ -127,6 +127,6 @@ void solver_FDTD(Array3D<double3>& fieldE, Array3D<double3>& fieldB, const Array
     }
 
    update_fieldsB(fieldE, fieldB);
-			
+			*/
 } 
 

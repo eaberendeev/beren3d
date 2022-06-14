@@ -226,8 +226,6 @@ Writer::Writer(const World &world, const Mesh &mesh,std::vector<ParticlesArray> 
   
 }
 
-
-
 void write_array2D(const Array2D<double>& data, long size1, long size2, const char* filename, const MPI_Topology& MPIconf){
     MPI_File fData2D;
     MPI_Status status;
@@ -265,43 +263,85 @@ void write_array2D(const Array2D<double>& data, long size1, long size2, const ch
 }
 
 
-void write_array3D(const Array3D<double>& data, long size1, long size2, long size3,const char* filename, const MPI_Topology& MPIconf){
-    MPI_File fData3D;
-    MPI_Status status;
-    //long sumSize1,indx;
-    float info;
+// void write_array2D(const Field2d& data, long size1, long size2, const char* filename, const MPI_Topology& MPIconf){
+//     MPI_File fData2D;
+//     MPI_Status status;
+
+//     long sumSize1;
+//     float info;
     
-    //if ( !MPIconf.is_master_depth() ) return;
+//     if ( !MPIconf.is_master_depth() ) return;
 
-    Array3D<float> floatData(size1,size2,size3);
-    int sizeData = size1*size2*size3;
+//     Array1D<float> floatData(size1*size2*data._nd);
+//     long sizeData = floatData.capacity();
 
-    MPI_File_open(MPIconf.comm_depth(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fData3D);
+//     MPI_File_open(MPIconf.comm_line(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fData2D);
+    
+//     long indx = 0
+//     for( auto i = 0; i < size1; ++i ){
+//         for( auto j = 0; j < size2; ++j ){
+//             for( auto n = 0; n < data._nd; ++n ){
+//                 floatData(indx) = float(data(i,j,n) );
+//             }
+//         }
+//     }
 
-    for( auto i = 0; i < size1; ++i ){
-       for( auto j = 0; j < size2; ++j ){
-         for( auto k = 0; k < size3; ++k ){
-            floatData(i,j,k) = float(data(i,j,k));
-        }
-      }
-    }
 
-    long startWrite = 3 * sizeof(float);
+//     sumSize1 = MPIconf.accum_sum_line(size1);
 
-    if( MPIconf.is_master_depth() ){
-          info = float(size1);
-          MPI_File_write_at(fData3D, 0,&info, 1,MPI_FLOAT, &status);
-          info = float(size2);
-          MPI_File_write_at(fData3D, sizeof(float),&info, 1,MPI_FLOAT, &status);
-          info = float(size3);
-          MPI_File_write_at(fData3D, 2*sizeof(float),&info, 1,MPI_FLOAT, &status);
-
-          MPI_File_write_at(fData3D, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
-    }
+//     if( MPIconf.is_last_line() ){
+//           info = float(sumSize1 + size1);
+//           MPI_File_write_at(fData2D, 0,&info, 1,MPI_FLOAT, &status);
+//           info = float(size2);
+//           MPI_File_write_at(fData2D, sizeof(float),&info, 1,MPI_FLOAT, &status);
+//           info = float(data._nd);
+//           MPI_File_write_at(fData2D, sizeof(float),&info, 1,MPI_FLOAT, &status);
+//     }
+//     long startWrite = sumSize1 * size2 * data._nd * sizeof(float) + 3 * sizeof(float);
         
-    MPI_File_close(&fData3D);
+//     MPI_File_write_at(fData2D, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
+//     MPI_File_close(&fData2D);
+  
+// }
 
-}
+
+// void write_array3D(const Field3d& data, long size1, long size2, long size3,const char* filename, const MPI_Topology& MPIconf){
+//     MPI_File fData3D;
+//     MPI_Status status;
+//     //long sumSize1,indx;
+//     float info;
+    
+//     //if ( !MPIconf.is_master_depth() ) return;
+
+//     Array3D<float> floatData(size1,size2,size3);
+//     int sizeData = size1*size2*size3;
+
+//     MPI_File_open(MPIconf.comm_depth(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fData3D);
+
+//     for( auto i = 0; i < size1; ++i ){
+//        for( auto j = 0; j < size2; ++j ){
+//          for( auto k = 0; k < size3; ++k ){
+//             floatData(i,j,k) = float(data(i,j,k));
+//         }
+//       }
+//     }
+
+//     long startWrite = 3 * sizeof(float);
+
+//     if( MPIconf.is_master_depth() ){
+//           info = float(size1);
+//           MPI_File_write_at(fData3D, 0,&info, 1,MPI_FLOAT, &status);
+//           info = float(size2);
+//           MPI_File_write_at(fData3D, sizeof(float),&info, 1,MPI_FLOAT, &status);
+//           info = float(size3);
+//           MPI_File_write_at(fData3D, 2*sizeof(float),&info, 1,MPI_FLOAT, &status);
+
+//           MPI_File_write_at(fData3D, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
+//     }
+        
+//     MPI_File_close(&fData3D);
+
+// }
 
 /*
 void write_array3D(const Array3D<double>& data, long size1, long size2, long size3,const char* filename, const MPI_Topology& MPIconf){

@@ -3,10 +3,11 @@
 #define DIAGNOSTIC_H_
 #include "World.h"
 #include "Mesh.h"
+#include "Read.h"
 #include "Particles.h"
 #include "Timer.h"
-void write_array2D(const Array2D<double>& data, long size1, long size2, const char* filename, const MPI_Topology& MPIconf);
-void write_array3D(const Array3D<double>& data, long size1, long size2, long size3, const char* filename, const MPI_Topology& MPIconf);
+void write_array2D(const Field2d& data, long size1, long size2, const char* filename, const MPI_Topology& MPIconf);
+//void write_array3D(const Array3D<double>& data, long size1, long size2, long size3, const char* filename, const MPI_Topology& MPIconf);
 
 
 
@@ -79,9 +80,9 @@ struct DiagData{
     void calc_energy(const Mesh &mesh,const std::vector<ParticlesArray> &species);
     //void calc_radiation_pointing_circle_2D(const Mesh &mesh);
     //void calc_radiation_pointing_planeZ(const Mesh &mesh, const Region &region);
-    void calc_radiation_pointing_planeX(Array2D<double>& dataPlaneX, double coordX, const Mesh &mesh, const Region &region);
-    void calc_radiation_pointing_planeY(Array2D<double>& dataPlaneY, double coordY, const Mesh &mesh, const Region &region);
-    void calc_radiation_pointing_planeZ(Array2D<double>& dataPlaneZ, double coordZ, const Mesh &mesh, const Region &region);
+    //void calc_radiation_pointing_planeX(Array2D<double>& dataPlaneX, double coordX, const Mesh &mesh, const Region &region);
+    //void calc_radiation_pointing_planeY(Array2D<double>& dataPlaneY, double coordY, const Mesh &mesh, const Region &region);
+    //void calc_radiation_pointing_planeZ(Array2D<double>& dataPlaneZ, double coordZ, const Mesh &mesh, const Region &region);
 
     void Reset(){
         

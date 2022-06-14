@@ -1,6 +1,7 @@
 #ifndef VEC_H_
 #define VEC_H_
 #include "defines.h"
+#include "util.h"
 #include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -682,6 +683,241 @@ struct Array{
         long _size, _maxSize;
 };
 */
+
+struct Field3d{
+
+    Field3d(long n1, long n2, long n3, long d){
+       allocate(n1,n2,n3,d);
+    }
+    Field3d(long3 nn, long d){
+       allocate(nn(0),nn(1),nn(2),d);
+    }
+
+    Field3d(Field3d &&other): _data{other._data}, 
+                  _size1{other._size1},_size2{other._size2},_size3{other._size3}, _nd{other._nd} {
+    }
+    Field3d(const Field3d &other): _size1{other._size1},_size2{other._size2},_size3{other._size3}, _nd{other._nd} { 
+        allocate( _size1,_size2,_size3,_nd );
+            _data = other._data ;
+    }
+    Field3d(){
+        //_data = nullptr;
+        _size1 = _size2 =_size3 = 0.;
+    }
+    
+    void allocate(long n1, long n2, long n3, long d){
+        _data.resize(n1* n2* n3* d);
+        _size1 = n1;
+        _size2 = n2;
+        _size3 = n3;
+        _nd = d;
+    }
+    
+    void clear(){
+        for(auto i = 0; i < capacity(); ++i){
+            _data[i] = 0.;
+        }
+    }
+
+    // void free(){
+    //     if (_data != nullptr)
+    //         delete[] _data;
+    //     _size1 = _size2 =_size3 = 0.;
+    // }
+
+    // ~Field3d(){
+    //    //free();
+    // }
+    
+    Field3d& operator=(double s) {
+        for(auto i = 0; i < capacity(); ++i){
+            _data[i] = s ;
+        }
+        return (*this);
+    }
+    
+    Field3d& operator=(const Field3d& array3D) {
+        // Self-assignment check
+        if (this == &array3D)
+            return *this;
+        // Checking the conformity of dimensions
+        assert( capacity() == array3D.capacity() );
+        //for(auto i = 0; i < capacity(); ++i){
+            _data = array3D._data ;
+        //}
+        return (*this);
+    }   
+    Field3d& operator=(Field3d &&array3D) {
+        // Self-assignment check
+        if (this == &array3D)
+            return *this;
+        // Checking the conformity of dimensions
+        assert( capacity() == array3D.capacity() );
+        //delete[] _data;
+        _data = array3D._data;
+        _size1 = array3D._size1;
+        _size2 = array3D._size2;
+        _size3 = array3D._size3;
+        _nd = array3D._nd;
+        //array3D._data = nullptr;
+        //array3D._size1 = array3D._size2 = array3D._size3 =  0; 
+        return (*this);
+    }   
+
+    Field3d& operator-=(const Field3d& array3D) {
+        assert( capacity() == array3D.capacity() );
+        for(auto i = 0; i < capacity(); ++i){
+            _data[i] -= array3D._data[i] ;
+        }
+        return (*this);
+    }
+    
+    Field3d& operator+=(const Field3d& array3D) {
+        assert( capacity() == array3D.capacity() );
+        for(auto i = 0; i < capacity(); ++i){
+            _data[i] += array3D._data[i] ;
+        }
+        return (*this);
+    }         
+
+
+    double& operator() (long i, long j, long k, long d) {
+        return _data[d + _nd*(i * _size2 * _size3 + j * _size3 + k) ];
+    }
+    const double& operator() (long i, long j, long k, long d) const{
+        return _data[d + _nd*(i * _size2 * _size3 + j * _size3 + k) ];
+    }
+
+    long nd() const{
+        return _nd;
+    }
+
+    long3 size() const{
+        return long3(_size1,_size2,_size3);
+    }
+    long capacity() const{
+        return _nd*_size1*_size2*_size3;
+    }
+
+    Eigen::VectorXd _data;
+    long _size1, _size2, _size3, _nd;
+};
+
+
+struct Field2d{
+
+    Field2d(long n1, long n2,long d){
+       allocate(n1,n2,d);
+    }
+
+    Field2d(Field2d &&other): _data{other._data}, 
+                  _size1{other._size1},_size2{other._size2}, _nd{other._nd} {
+    }
+    Field2d(const Field2d &other): _size1{other._size1},_size2{other._size2}, _nd{other._nd} { 
+        allocate( _size1,_size2,_nd );
+            _data = other._data ;
+    }
+    Field2d(){
+        //_data = nullptr;
+        _size1 = _size2 = 0.;
+    }
+    
+    void allocate(long n1, long n2, long d){
+        _data.resize(n1* n2* d);
+        _size1 = n1;
+        _size2 = n2;
+        _nd = d;
+    }
+    
+    void clear(){
+        for(auto i = 0; i < capacity(); ++i){
+            _data[i] = 0.;
+        }
+    }
+
+    // void free(){
+    //     if (_data != nullptr)
+    //         delete[] _data;
+    //     _size1 = _size2 =_size3 = 0.;
+    // }
+
+    // ~Field3d(){
+    //    //free();
+    // }
+    
+    Field2d& operator=(double s) {
+        for(auto i = 0; i < capacity(); ++i){
+            _data[i] = s ;
+        }
+        return (*this);
+    }
+    
+    Field2d& operator=(const Field2d& array3D) {
+        // Self-assignment check
+        if (this == &array3D)
+            return *this;
+        // Checking the conformity of dimensions
+        assert( capacity() == array3D.capacity() );
+        //for(auto i = 0; i < capacity(); ++i){
+            _data = array3D._data ;
+        //}
+        return (*this);
+    }   
+    Field2d& operator=(Field2d &&array3D) {
+        // Self-assignment check
+        if (this == &array3D)
+            return *this;
+        // Checking the conformity of dimensions
+        assert( capacity() == array3D.capacity() );
+        //delete[] _data;
+        _data = array3D._data;
+        _size1 = array3D._size1;
+        _size2 = array3D._size2;
+        _nd = array3D._nd;
+        //array3D._data = nullptr;
+        //array3D._size1 = array3D._size2 = array3D._size3 =  0; 
+        return (*this);
+    }   
+
+    Field2d& operator-=(const Field3d& array3D) {
+        assert( capacity() == array3D.capacity() );
+        for(auto i = 0; i < capacity(); ++i){
+            _data[i] -= array3D._data[i] ;
+        }
+        return (*this);
+    }
+    
+    Field2d& operator+=(const Field2d& array3D) {
+        assert( capacity() == array3D.capacity() );
+        for(auto i = 0; i < capacity(); ++i){
+            _data[i] += array3D._data[i] ;
+        }
+        return (*this);
+    }         
+
+
+    double& operator() (long i, long j, long d) {
+        return _data[d + _nd*(i * _size2 + j) ];
+    }
+    const double& operator() (long i, long j, long d) const{
+        return _data[d + _nd*(i * _size2  + j ) ];
+    }
+
+    long nd() const{
+        return _nd;
+    }
+
+    long2 size() const{
+        return long2(_size1,_size2);
+    }
+    long capacity() const{
+        return _nd*_size1*_size2;
+    }
+
+    Eigen::VectorXd _data;
+    long _size1, _size2, _nd;
+};
+
 template <class T>
 struct Array : std::vector<T> {
     using std::vector<T>::reserve;

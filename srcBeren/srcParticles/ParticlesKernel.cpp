@@ -76,6 +76,7 @@ void MPIExchangeParticles(Array<Particle>& ParticlesBufLeft, Array<Particle>& Pa
   	}
 
 }
+/*
 void current_in_cell(double3 r, double3 r1, long indx, long indy, long indz,double koeff, Array3D<double3>& fieldJ){
 	double dx = r1.x() - r.x();
 	double dy = r1.y() - r.y();
@@ -270,11 +271,11 @@ void push_pic(double3& POS, double3& PULS, long q, double mass, double mpw, cons
 	POS = POS1;
 }
 
+*/
 
 
-
-void push(double3& POS, double3& PULS, long q, double mass, double mpw, const Array3D<double3>& fieldE, \
-		   const Array3D<double3>& fieldB, Array3D<double3>& fieldJ, double3 E = double3(0.,0.,0.)){
+void push(double3& POS, double3& PULS, long q, double mass, double mpw, const Field3d& fieldE, \
+		   const Field3d& fieldB, Field3d& fieldJ, double3 E = double3(0.,0.,0.)){
   	constexpr auto SMAX = 2*SHAPE_SIZE;
 	long xk, yk, zk, n, m, k,indx, indy,indz;
 	double xx, yy, zz,arg;
@@ -337,8 +338,12 @@ void push(double3& POS, double3& PULS, long q, double mass, double mpw, const Ar
 				snm23 = sx[n] * sdy[m] * sdz[k];
 				
 				indz = zk  + k;
-				E += Dx * Dy * Dz * (double3(snm1,snm2,snm3) * fieldE(indx,indy,indz) );
-				B += Dx * Dy * Dz * (double3(snm23,snm13,snm12) * fieldB(indx,indy,indz) );
+				E.x() += Dx * Dy * Dz * (snm1 * fieldE(indx,indy,indz,0) );
+				E.y() += Dx * Dy * Dz * (snm2 * fieldE(indx,indy,indz,1) );
+				E.z() += Dx * Dy * Dz * (snm3 * fieldE(indx,indy,indz,2) );
+				B.x() += Dx * Dy * Dz * (snm23 * fieldB(indx,indy,indz,0) );
+				B.y() += Dx * Dy * Dz * (snm13 * fieldB(indx,indy,indz,1) );
+				B.z() += Dx * Dy * Dz * (snm12 * fieldB(indx,indy,indz,2) );
 			}
 		}
 	}
@@ -389,7 +394,9 @@ void push(double3& POS, double3& PULS, long q, double mass, double mpw, const Ar
 			
 				indz = zk + k;
 			
-				fieldJ(indx,indy,indz) += double3(jx[n][m][k],jy[n][m][k],jz[n][m][k]);
+				fieldJ(indx,indy,indz,0) += jx[n][m][k];
+				fieldJ(indx,indy,indz,1) += jy[n][m][k];
+				fieldJ(indx,indy,indz,2) += jz[n][m][k];
 			}
 		}
 	}
@@ -442,16 +449,16 @@ void ParticlesArray::move(Mesh& mesh,long timestep){
 		r = particlesData(k).coord;
 		p = particlesData(k).pulse;
 
-		double3 ELas;	
+		// double3 ELas;	
 		
-		for (const auto& las : mesh.lasers){
-			r_glob = _world.region.get_coord_glob(r);
-			ELas += las.force(r_glob,timestep);
-		}
+		// for (const auto& las : mesh.lasers){
+		// 	r_glob = _world.region.get_coord_glob(r);
+		// 	ELas += las.force(r_glob,timestep);
+		// }
 		#if SHAPE == 1
-			push_pic(r,p, charge, mass(k), mpw(k), mesh.fieldE, mesh.fieldB, mesh.fieldJ, ELas);
+	//		push_pic(r,p, charge, mass(k), mpw(k), mesh.fieldE, mesh.fieldB, mesh.fieldJ, ELas);
 		#else
-			push(r,p, charge, mass(k), mpw(k), mesh.fieldE, mesh.fieldB, mesh.fieldJ, ELas);
+			push(r,p, charge, mass(k), mpw(k), mesh.fieldE, mesh.fieldB, mesh.fieldJ);
 		#endif
 
 		bound_resumption(particlesData(k),r,p);
@@ -550,11 +557,11 @@ void ParticlesArray::move_virt(Mesh& mesh,long timestep){
 			p = particlesData(k).pulse;
 
 			r = double3(x,y,z);
-			#if SHAPE == 1	
-				push_pic(r, p, charge, mass(k), mpw(k), mesh.fieldE, mesh.fieldB, mesh.fieldJ);		
-			#else
-				push(r, p, charge, mass(k), mpw(k), mesh.fieldE, mesh.fieldB, mesh.fieldJ);		
-			#endif
+			// #if SHAPE == 1	
+			// 	push_pic(r, p, charge, mass(k), mpw(k), mesh.fieldE, mesh.fieldB, mesh.fieldJ);		
+			// #else
+			// 	push(r, p, charge, mass(k), mpw(k), mesh.fieldE, mesh.fieldB, mesh.fieldJ);		
+			// #endif
 		}
 		k++;
 	}

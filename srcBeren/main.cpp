@@ -38,12 +38,12 @@ int main(int argc,char **argv){
 	Timer globalTimer("globalFunctions.time");
 	for(auto timestep = StartTimeStep + 1; timestep <= MaxTimeStep; ++timestep){
 
-		mesh.fieldJ.clear();
+		mesh.clear();
 
-  		globalTimer.start("Collision");
-		collision(mesh,world,species,timestep);
-		MPI_Barrier(MPI_COMM_WORLD);
-		globalTimer.finish("Collision");
+  		//globalTimer.start("Collision");
+		//collision(mesh,world,species,timestep);
+		//MPI_Barrier(MPI_COMM_WORLD);
+		//globalTimer.finish("Collision");
 
 		globalTimer.start("particles");
 		for( auto &sp  : species){

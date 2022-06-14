@@ -48,293 +48,293 @@ void Writer::diag_zond(long timestep){
 
 }
 
-static void write_fields_lineX_to_file(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long indy, long indz,
-      const MPI_Topology& MPIconf, const Region& domain, MPI_File& fZondLine, long currentStep,long timestep){
+// static void write_fields_lineX_to_file(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long indy, long indz,
+//       const MPI_Topology& MPIconf, const Region& domain, MPI_File& fZondLine, long currentStep,long timestep){
     
-    MPI_Status status;
-    char filename[100];
-    auto numCells = (domain.numCells.x() - domain.dampCells[0].x() - domain.dampCells[1].x()) ;
-    auto sizeData = 6*numCells;
-    long indx;
+//     MPI_Status status;
+//     char filename[100];
+//     auto numCells = (domain.numCells.x() - domain.dampCells[0].x() - domain.dampCells[1].x()) ;
+//     auto sizeData = 6*numCells;
+//     long indx;
     
-    static Array1D<float>floatData(6*sizeData);
+//     static Array1D<float>floatData(6*sizeData);
 
-    if( timestep == StartTimeStep){
-        sprintf(filename, "./Fields/ZondLineX_nodeY%04d_nodeZ%04d.bin",(int)indy,(int)indz);
-        MPI_File_open(MPIconf.comm_line(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fZondLine);
-        float info = float(numCells*MPIconf.size_line());
+//     if( timestep == StartTimeStep){
+//         sprintf(filename, "./Fields/ZondLineX_nodeY%04d_nodeZ%04d.bin",(int)indy,(int)indz);
+//         MPI_File_open(MPIconf.comm_line(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fZondLine);
+//         float info = float(numCells*MPIconf.size_line());
     
-        if(MPIconf.is_first_line()){   
-            MPI_File_write_at(fZondLine, 0, &info, 1, MPI_FLOAT, &status);
-        }
-    }
+//         if(MPIconf.is_first_line()){   
+//             MPI_File_write_at(fZondLine, 0, &info, 1, MPI_FLOAT, &status);
+//         }
+//     }
 
-    for( auto i = 0; i < numCells; ++i){
-        indx = i + domain.dampCells[0].x();
-        floatData(6 * i    ) = float(fieldE(indx,indy,indz).x() );
-        floatData(6 * i + 1) = float(fieldE(indx,indy,indz).y() );
-        floatData(6 * i + 2) = float(fieldE(indx,indy,indz).z() );
-        floatData(6 * i + 3) = float(fieldB(indx,indy,indz).x() );
-        floatData(6 * i + 4) = float(fieldB(indx,indy,indz).y() );
-        floatData(6 * i + 5) = float(fieldB(indx,indy,indz).z() );
-    }
+//     for( auto i = 0; i < numCells; ++i){
+//         indx = i + domain.dampCells[0].x();
+//         floatData(6 * i    ) = float(fieldE(indx,indy,indz).x() );
+//         floatData(6 * i + 1) = float(fieldE(indx,indy,indz).y() );
+//         floatData(6 * i + 2) = float(fieldE(indx,indy,indz).z() );
+//         floatData(6 * i + 3) = float(fieldB(indx,indy,indz).x() );
+//         floatData(6 * i + 4) = float(fieldB(indx,indy,indz).y() );
+//         floatData(6 * i + 5) = float(fieldB(indx,indy,indz).z() );
+//     }
   
-    int startWrite = MPIconf.rank_line()*sizeData*sizeof(float) + sizeof(float);
+//     int startWrite = MPIconf.rank_line()*sizeData*sizeof(float) + sizeof(float);
   
-    int sizeWrite = MPIconf.size_line()*sizeData*sizeof(float);
+//     int sizeWrite = MPIconf.size_line()*sizeData*sizeof(float);
     
-    startWrite += sizeWrite*currentStep;
+//     startWrite += sizeWrite*currentStep;
     
-    MPI_File_write_at(fZondLine, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
+//     MPI_File_write_at(fZondLine, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
       
-}
+// }
 
-void Writer::write_fields_lineX(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long timestep){
-  auto numZonds = diagData.params.zondCoordsLineX.size();
+// void Writer::write_fields_lineX(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long timestep){
+//   auto numZonds = diagData.params.zondCoordsLineX.size();
   
-  if (!_world.MPIconf.is_master_depth() ) return;
+//   if (!_world.MPIconf.is_master_depth() ) return;
   
-  long indy,indz;
-  static std::vector<MPI_File> fZondLine;
-  static std::vector<long> currentStep; 
+//   long indy,indz;
+//   static std::vector<MPI_File> fZondLine;
+//   static std::vector<long> currentStep; 
   
-  if( timestep == StartTimeStep){
-    for (ulong n = 0; n < numZonds; n++ ){
-          MPI_File file;
-          fZondLine.push_back(file);
-          currentStep.push_back(0);
-      }
-  }
+//   if( timestep == StartTimeStep){
+//     for (ulong n = 0; n < numZonds; n++ ){
+//           MPI_File file;
+//           fZondLine.push_back(file);
+//           currentStep.push_back(0);
+//       }
+//   }
    
-  for (ulong n = 0; n < numZonds; n++ ){
-    auto coord = diagData.params.zondCoordsLineX[n];
-    indy = _mesh.get_node_from_coordY(coord.y() );
-    indz = _mesh.get_node_from_coordZ(coord.z() );
-    write_fields_lineX_to_file(_mesh.fieldE, _mesh.fieldB, indy, indz,_world.MPIconf, _world.region, fZondLine[n], currentStep[n],timestep);
-    currentStep[n]++;
-  }
-}
+//   for (ulong n = 0; n < numZonds; n++ ){
+//     auto coord = diagData.params.zondCoordsLineX[n];
+//     indy = _mesh.get_node_from_coordY(coord.y() );
+//     indz = _mesh.get_node_from_coordZ(coord.z() );
+//     write_fields_lineX_to_file(_mesh.fieldE, _mesh.fieldB, indy, indz,_world.MPIconf, _world.region, fZondLine[n], currentStep[n],timestep);
+//     currentStep[n]++;
+//   }
+// }
 
 
-static void write_fields_lineY_to_file(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long globIndx, long indz,
-      const MPI_Topology& MPIconf, const Region& domain, MPI_File& fZondLine, long currentStep,long timestep){
+// static void write_fields_lineY_to_file(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long globIndx, long indz,
+//       const MPI_Topology& MPIconf, const Region& domain, MPI_File& fZondLine, long currentStep,long timestep){
     
-    MPI_Status status;
-    char filename[100];
-    auto numCells = domain.numNodes.y();
-    auto sizeData = 6*numCells;
-    long indx = domain.get_index_loc(globIndx);
-    long indy;
-    static Array1D<float>floatData(6*sizeData);
-   
-
-    if( timestep == StartTimeStep){
-        sprintf(filename, "./Fields/ZondLineY_nodeX%04d_nodeZ%04d.bin",(int)globIndx,(int)indz);
-        MPI_File_open(MPIconf.comm_depth(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fZondLine);
-        float info = float(numCells);
-    
-        if(MPIconf.is_master_depth()){   
-            MPI_File_write_at(fZondLine, 0, &info, 1, MPI_FLOAT, &status);
-        }
-    }
-
-    for( auto i = 0; i < numCells; ++i){
-        indy = i;
-        floatData(6 * i    ) = float(fieldE(indx,indy,indz).x() );
-        floatData(6 * i + 1) = float(fieldE(indx,indy,indz).y() );
-        floatData(6 * i + 2) = float(fieldE(indx,indy,indz).z() );
-        floatData(6 * i + 3) = float(fieldB(indx,indy,indz).x() );
-        floatData(6 * i + 4) = float(fieldB(indx,indy,indz).y() );
-        floatData(6 * i + 5) = float(fieldB(indx,indy,indz).z() );
-    }
-  
-    int startWrite =  sizeof(float);
-  
-    int sizeWrite = sizeData*sizeof(float);
-    
-    startWrite += sizeWrite*currentStep;
-    
-    if(MPIconf.is_master_depth()){   
-      MPI_File_write_at(fZondLine, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
-    }      
-}
-
-static void write_fields_lineZ_to_file(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long globIndx, long indy,
-      const MPI_Topology& MPIconf, const Region& domain, MPI_File& fZondLine, long currentStep,long timestep){
-    
-    MPI_Status status;
-    char filename[100];
-    auto numCells = domain.numNodes.z();
-    auto sizeData = 6*numCells;
-    long indx = domain.get_index_loc(globIndx);
-    long indz;
-    static Array1D<float>floatData(6*sizeData);
+//     MPI_Status status;
+//     char filename[100];
+//     auto numCells = domain.numNodes.y();
+//     auto sizeData = 6*numCells;
+//     long indx = domain.get_index_loc(globIndx);
+//     long indy;
+//     static Array1D<float>floatData(6*sizeData);
    
 
-    if( timestep == StartTimeStep){
-        sprintf(filename, "./Fields/ZondLineZ_nodeX%04d_nodeY%04d.bin",(int)globIndx,(int)indy);
-        MPI_File_open(MPIconf.comm_depth(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fZondLine);
-        float info = float(numCells);
+//     if( timestep == StartTimeStep){
+//         sprintf(filename, "./Fields/ZondLineY_nodeX%04d_nodeZ%04d.bin",(int)globIndx,(int)indz);
+//         MPI_File_open(MPIconf.comm_depth(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fZondLine);
+//         float info = float(numCells);
     
-        if(MPIconf.is_master_depth()){   
-            MPI_File_write_at(fZondLine, 0, &info, 1, MPI_FLOAT, &status);
-        }
-    }
+//         if(MPIconf.is_master_depth()){   
+//             MPI_File_write_at(fZondLine, 0, &info, 1, MPI_FLOAT, &status);
+//         }
+//     }
 
-    for( auto i = 0; i < numCells; ++i){
-        indz = i;
-        floatData(6 * i    ) = float(fieldE(indx,indy,indz).x() );
-        floatData(6 * i + 1) = float(fieldE(indx,indy,indz).y() );
-        floatData(6 * i + 2) = float(fieldE(indx,indy,indz).z() );
-        floatData(6 * i + 3) = float(fieldB(indx,indy,indz).x() );
-        floatData(6 * i + 4) = float(fieldB(indx,indy,indz).y() );
-        floatData(6 * i + 5) = float(fieldB(indx,indy,indz).z() );
-    }
+//     for( auto i = 0; i < numCells; ++i){
+//         indy = i;
+//         floatData(6 * i    ) = float(fieldE(indx,indy,indz).x() );
+//         floatData(6 * i + 1) = float(fieldE(indx,indy,indz).y() );
+//         floatData(6 * i + 2) = float(fieldE(indx,indy,indz).z() );
+//         floatData(6 * i + 3) = float(fieldB(indx,indy,indz).x() );
+//         floatData(6 * i + 4) = float(fieldB(indx,indy,indz).y() );
+//         floatData(6 * i + 5) = float(fieldB(indx,indy,indz).z() );
+//     }
   
-    int startWrite =  sizeof(float);
+//     int startWrite =  sizeof(float);
   
-    int sizeWrite = sizeData*sizeof(float);
+//     int sizeWrite = sizeData*sizeof(float);
     
-    startWrite += sizeWrite*currentStep;
+//     startWrite += sizeWrite*currentStep;
     
-    if(MPIconf.is_master_depth()){   
-      MPI_File_write_at(fZondLine, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
-    }      
-}
+//     if(MPIconf.is_master_depth()){   
+//       MPI_File_write_at(fZondLine, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
+//     }      
+// }
 
-
-void Writer::write_fields_lineY(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long timestep){
-  auto numZonds = diagData.params.zondCoordsLineY.size();
-  
-  
-  long globIndx,indz;
-  static std::vector<MPI_File> fZondLine;
-  static std::vector<long> currentStep; 
-  
-  if( timestep == StartTimeStep){
-    for (ulong n = 0; n < numZonds; n++ ){
-          MPI_File file;
-          fZondLine.push_back(file);
-          currentStep.push_back(0);
-      }
-  }
-   
-  for (ulong n = 0; n < numZonds; n++ ){
-    auto coord = diagData.params.zondCoordsLineY[n];
-    if( _world.region.in_region(coord.x() ) ){
-      globIndx = _mesh.get_node_from_coordX(coord.x() ); 
-      indz = _mesh.get_node_from_coordZ(coord.z() ); 
-      write_fields_lineY_to_file(_mesh.fieldE, _mesh.fieldB, globIndx, indz,_world.MPIconf, _world.region, fZondLine[n], currentStep[n],timestep);
-      currentStep[n]++;
-    }
-  }
-}
-
-
-void Writer::write_fields_lineZ(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long timestep){
-  
-  auto numZonds = diagData.params.zondCoordsLineY.size();
-  
-  long globIndx,indy;
-  static std::vector<MPI_File> fZondLine;
-  static std::vector<long> currentStep; 
-  
-  if( timestep == StartTimeStep){
-    for (const auto& coord : diagData.params.zondCoordsLineZ ){
-          MPI_File file;
-          fZondLine.push_back(file);
-          currentStep.push_back(0);
-      }
-  }
-   
-  for (ulong n = 0; n < diagData.params.zondCoordsLineZ.size(); n++ ){
-    auto coord = diagData.params.zondCoordsLineZ[n];    
-    if( _world.region.in_region(coord.x() ) ){
-      globIndx = _mesh.get_node_from_coordX(coord.x() ); 
-      indy = _mesh.get_node_from_coordY(coord.y() ); 
-      write_fields_lineZ_to_file(_mesh.fieldE, _mesh.fieldB, globIndx, indy,_world.MPIconf, _world.region, fZondLine[n], currentStep[n],timestep);
-      currentStep[n]++;
-    }
-  }
-}
-
-static void write_fields_circle_to_file(const Array2D<double3>& circleE, const Array2D<double3>& circleB, long globIndx, long id,
-      const MPI_Topology& MPIconf, const Region& domain, MPI_File& fZondLine, long currentStep,long timestep){
+// static void write_fields_lineZ_to_file(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long globIndx, long indy,
+//       const MPI_Topology& MPIconf, const Region& domain, MPI_File& fZondLine, long currentStep,long timestep){
     
-    MPI_Status status;
-    char filename[100];
-    auto numCells = circleE.size().y();
-    auto sizeData = 6*numCells;
-    long indx = domain.get_index_loc(globIndx);
-    long indr;
-    
-    static Array1D<float>floatData(6*sizeData);
+//     MPI_Status status;
+//     char filename[100];
+//     auto numCells = domain.numNodes.z();
+//     auto sizeData = 6*numCells;
+//     long indx = domain.get_index_loc(globIndx);
+//     long indz;
+//     static Array1D<float>floatData(6*sizeData);
    
 
-    if( timestep == StartTimeStep){
-        sprintf(filename, "./Fields/ZondCircle_nodeX%04d_radius%04d.bin",(int)globIndx,(int)id);
-        MPI_File_open(MPIconf.comm_depth(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fZondLine);
-        float info = float(numCells);
+//     if( timestep == StartTimeStep){
+//         sprintf(filename, "./Fields/ZondLineZ_nodeX%04d_nodeY%04d.bin",(int)globIndx,(int)indy);
+//         MPI_File_open(MPIconf.comm_depth(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fZondLine);
+//         float info = float(numCells);
     
-        if(MPIconf.is_master_depth()){   
-            MPI_File_write_at(fZondLine, 0, &info, 1, MPI_FLOAT, &status);
-        }
-    }
+//         if(MPIconf.is_master_depth()){   
+//             MPI_File_write_at(fZondLine, 0, &info, 1, MPI_FLOAT, &status);
+//         }
+//     }
 
-    for( auto i = 0; i < numCells; ++i){
-        indr = i;
-        floatData(6 * i    ) = float(circleE(indx,indr).x() );
-        floatData(6 * i + 1) = float(circleE(indx,indr).y() );
-        floatData(6 * i + 2) = float(circleE(indx,indr).z() );
-        floatData(6 * i + 3) = float(circleB(indx,indr).x() );
-        floatData(6 * i + 4) = float(circleB(indx,indr).y() );
-        floatData(6 * i + 5) = float(circleB(indx,indr).z() );
-    }
+//     for( auto i = 0; i < numCells; ++i){
+//         indz = i;
+//         floatData(6 * i    ) = float(fieldE(indx,indy,indz).x() );
+//         floatData(6 * i + 1) = float(fieldE(indx,indy,indz).y() );
+//         floatData(6 * i + 2) = float(fieldE(indx,indy,indz).z() );
+//         floatData(6 * i + 3) = float(fieldB(indx,indy,indz).x() );
+//         floatData(6 * i + 4) = float(fieldB(indx,indy,indz).y() );
+//         floatData(6 * i + 5) = float(fieldB(indx,indy,indz).z() );
+//     }
   
-    int startWrite =  sizeof(float);
+//     int startWrite =  sizeof(float);
   
-    int sizeWrite = sizeData*sizeof(float);
+//     int sizeWrite = sizeData*sizeof(float);
     
-    startWrite += sizeWrite*currentStep;
+//     startWrite += sizeWrite*currentStep;
     
-    if(MPIconf.is_master_depth()){   
-      MPI_File_write_at(fZondLine, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
-    }      
-}
+//     if(MPIconf.is_master_depth()){   
+//       MPI_File_write_at(fZondLine, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
+//     }      
+// }
 
-void Writer::write_fields_circle( long timestep){
-  long globIndx,indr;
-  static std::vector<MPI_File> fZondLine;
-  static std::vector<long> currentStep; 
+
+// void Writer::write_fields_lineY(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long timestep){
+//   auto numZonds = diagData.params.zondCoordsLineY.size();
   
-  if( timestep == StartTimeStep){
-    for (const auto& coord : diagData.params.zondCoordsCircleX ){
-        for(const auto& data : diagData.radialDiag){
-          MPI_File file;
-          fZondLine.push_back(file);
-          currentStep.push_back(0);
-        }
-      }
-  }
   
-  for (ulong n = 0; n < diagData.params.zondCoordsCircleX.size(); n++ ){  
-    auto coord =  diagData.params.zondCoordsCircleX[n];
-    if( _world.region.in_region(coord ) ){
-        globIndx = _mesh.get_node_from_coordX(coord ); 
-        indr = 0;
-        for(const auto& data : diagData.radialDiag){
-          indr +=1;
-          write_fields_circle_to_file(data.circleE, data.circleB, globIndx, indr,_world.MPIconf, _world.region, fZondLine[n], currentStep[n],timestep);
-          currentStep[n]++;
-        }
+//   long globIndx,indz;
+//   static std::vector<MPI_File> fZondLine;
+//   static std::vector<long> currentStep; 
+  
+//   if( timestep == StartTimeStep){
+//     for (ulong n = 0; n < numZonds; n++ ){
+//           MPI_File file;
+//           fZondLine.push_back(file);
+//           currentStep.push_back(0);
+//       }
+//   }
+   
+//   for (ulong n = 0; n < numZonds; n++ ){
+//     auto coord = diagData.params.zondCoordsLineY[n];
+//     if( _world.region.in_region(coord.x() ) ){
+//       globIndx = _mesh.get_node_from_coordX(coord.x() ); 
+//       indz = _mesh.get_node_from_coordZ(coord.z() ); 
+//       write_fields_lineY_to_file(_mesh.fieldE, _mesh.fieldB, globIndx, indz,_world.MPIconf, _world.region, fZondLine[n], currentStep[n],timestep);
+//       currentStep[n]++;
+//     }
+//   }
+// }
 
-    }
-  }
-}
+
+// void Writer::write_fields_lineZ(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long timestep){
+  
+//   auto numZonds = diagData.params.zondCoordsLineY.size();
+  
+//   long globIndx,indy;
+//   static std::vector<MPI_File> fZondLine;
+//   static std::vector<long> currentStep; 
+  
+//   if( timestep == StartTimeStep){
+//     for (const auto& coord : diagData.params.zondCoordsLineZ ){
+//           MPI_File file;
+//           fZondLine.push_back(file);
+//           currentStep.push_back(0);
+//       }
+//   }
+   
+//   for (ulong n = 0; n < diagData.params.zondCoordsLineZ.size(); n++ ){
+//     auto coord = diagData.params.zondCoordsLineZ[n];    
+//     if( _world.region.in_region(coord.x() ) ){
+//       globIndx = _mesh.get_node_from_coordX(coord.x() ); 
+//       indy = _mesh.get_node_from_coordY(coord.y() ); 
+//       write_fields_lineZ_to_file(_mesh.fieldE, _mesh.fieldB, globIndx, indy,_world.MPIconf, _world.region, fZondLine[n], currentStep[n],timestep);
+//       currentStep[n]++;
+//     }
+//   }
+// }
+
+// static void write_fields_circle_to_file(const Array2D<double3>& circleE, const Array2D<double3>& circleB, long globIndx, long id,
+//       const MPI_Topology& MPIconf, const Region& domain, MPI_File& fZondLine, long currentStep,long timestep){
+    
+//     MPI_Status status;
+//     char filename[100];
+//     auto numCells = circleE.size().y();
+//     auto sizeData = 6*numCells;
+//     long indx = domain.get_index_loc(globIndx);
+//     long indr;
+    
+//     static Array1D<float>floatData(6*sizeData);
+   
+
+//     if( timestep == StartTimeStep){
+//         sprintf(filename, "./Fields/ZondCircle_nodeX%04d_radius%04d.bin",(int)globIndx,(int)id);
+//         MPI_File_open(MPIconf.comm_depth(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fZondLine);
+//         float info = float(numCells);
+    
+//         if(MPIconf.is_master_depth()){   
+//             MPI_File_write_at(fZondLine, 0, &info, 1, MPI_FLOAT, &status);
+//         }
+//     }
+
+//     for( auto i = 0; i < numCells; ++i){
+//         indr = i;
+//         floatData(6 * i    ) = float(circleE(indx,indr).x() );
+//         floatData(6 * i + 1) = float(circleE(indx,indr).y() );
+//         floatData(6 * i + 2) = float(circleE(indx,indr).z() );
+//         floatData(6 * i + 3) = float(circleB(indx,indr).x() );
+//         floatData(6 * i + 4) = float(circleB(indx,indr).y() );
+//         floatData(6 * i + 5) = float(circleB(indx,indr).z() );
+//     }
+  
+//     int startWrite =  sizeof(float);
+  
+//     int sizeWrite = sizeData*sizeof(float);
+    
+//     startWrite += sizeWrite*currentStep;
+    
+//     if(MPIconf.is_master_depth()){   
+//       MPI_File_write_at(fZondLine, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
+//     }      
+// }
+
+// void Writer::write_fields_circle( long timestep){
+//   long globIndx,indr;
+//   static std::vector<MPI_File> fZondLine;
+//   static std::vector<long> currentStep; 
+  
+//   if( timestep == StartTimeStep){
+//     for (const auto& coord : diagData.params.zondCoordsCircleX ){
+//         for(const auto& data : diagData.radialDiag){
+//           MPI_File file;
+//           fZondLine.push_back(file);
+//           currentStep.push_back(0);
+//         }
+//       }
+//   }
+  
+//   for (ulong n = 0; n < diagData.params.zondCoordsCircleX.size(); n++ ){  
+//     auto coord =  diagData.params.zondCoordsCircleX[n];
+//     if( _world.region.in_region(coord ) ){
+//         globIndx = _mesh.get_node_from_coordX(coord ); 
+//         indr = 0;
+//         for(const auto& data : diagData.radialDiag){
+//           indr +=1;
+//           write_fields_circle_to_file(data.circleE, data.circleB, globIndx, indr,_world.MPIconf, _world.region, fZondLine[n], currentStep[n],timestep);
+//           currentStep[n]++;
+//         }
+
+//     }
+//   }
+// }
 
 
 
-void Writer::write_fields2D_planeX(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, double coordX, const long& timestep){
+void Writer::write_fields2D_planeX(const Field3d& fieldE, const Field3d& fieldB, double coordX, const long& timestep){
     if (!_world.region.in_region(coordX ) ) return;
     
     long globIndex = _mesh.get_node_from_coordX(coordX);
@@ -364,12 +364,12 @@ void Writer::write_fields2D_planeX(const Array3D<double3>& fieldE, const Array3D
       for( auto j = 0; j < size_y; j++ ){
           for( auto k = 0; k < size_z; k++ ){
               indx = j*size_z + k;
-              floatData[0][indx] = float(fieldE(i,j,k).x() );
-              floatData[1][indx] = float(fieldE(i,j,k).y() );
-              floatData[2][indx] = float(fieldE(i,j,k).z() );
-              floatData[3][indx] = float(fieldB(i,j,k).x() );
-              floatData[4][indx] = float(fieldB(i,j,k).y() );
-              floatData[5][indx] = float(fieldB(i,j,k).z() );
+              floatData[0][indx] = float(fieldE(i,j,k,0) );
+              floatData[1][indx] = float(fieldE(i,j,k,1) );
+              floatData[2][indx] = float(fieldE(i,j,k,2) );
+              floatData[3][indx] = float(fieldB(i,j,k,0) );
+              floatData[4][indx] = float(fieldB(i,j,k,1) );
+              floatData[5][indx] = float(fieldB(i,j,k,2) );
           }
       }
     
@@ -399,7 +399,7 @@ void Writer::write_fields2D_planeX(const Array3D<double3>& fieldE, const Array3D
 
 
 
-void Writer::write_fields2D_planeZ(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, double coordZ, const long& timestep){
+void Writer::write_fields2D_planeZ(const Field3d& fieldE, const Field3d& fieldB, double coordZ, const long& timestep){
     if (!_world.MPIconf.is_master_depth()) return;
     char filename[100];
     float info;    
@@ -432,12 +432,12 @@ void Writer::write_fields2D_planeZ(const Array3D<double3>& fieldE, const Array3D
     for( auto i = 0; i < size_x; i++ ){
         for( auto j = 0; j < size_y; j++ ){
             indx = i*size_y + j;
-            floatData[0][indx] = float(fieldE(i,j,k).x() );
-            floatData[1][indx] = float(fieldE(i,j,k).y() );
-            floatData[2][indx] = float(fieldE(i,j,k).z() );
-            floatData[3][indx] = float(fieldB(i,j,k).x() );
-            floatData[4][indx] = float(fieldB(i,j,k).y() );
-            floatData[5][indx] = float(fieldB(i,j,k).z() );
+            floatData[0][indx] = float(fieldE(i,j,k,0) );
+            floatData[1][indx] = float(fieldE(i,j,k,1) );
+            floatData[2][indx] = float(fieldE(i,j,k,2) );
+            floatData[3][indx] = float(fieldB(i,j,k,0) );
+            floatData[4][indx] = float(fieldB(i,j,k,1) );
+            floatData[5][indx] = float(fieldB(i,j,k,2) );
         }
       }
     
@@ -465,7 +465,7 @@ void Writer::write_fields2D_planeZ(const Array3D<double3>& fieldE, const Array3D
 }
 
 
-void Writer::write_fields2D_planeY(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, double coordY, const long& timestep){
+void Writer::write_fields2D_planeY(const Field3d& fieldE, const Field3d& fieldB, double coordY, const long& timestep){
     if (!_world.MPIconf.is_master_depth()) return;
     char filename[100];
     float info;    
@@ -496,12 +496,12 @@ void Writer::write_fields2D_planeY(const Array3D<double3>& fieldE, const Array3D
       for( auto i = 0; i < size_x; i++ ){
           for( auto k = 0; k < size_z; k++ ){
             indx = i*size_z + k;
-              floatData[0][indx] = float(fieldE(i,j,k).x() );
-              floatData[1][indx] = float(fieldE(i,j,k).y() );
-              floatData[2][indx] = float(fieldE(i,j,k).z() );
-              floatData[3][indx] = float(fieldB(i,j,k).x() );
-              floatData[4][indx] = float(fieldB(i,j,k).y() );
-              floatData[5][indx] = float(fieldB(i,j,k).z() );
+              floatData[0][indx] = float(fieldE(i,j,k,0) );
+              floatData[1][indx] = float(fieldE(i,j,k,1) );
+              floatData[2][indx] = float(fieldE(i,j,k,2) );
+              floatData[3][indx] = float(fieldB(i,j,k,0) );
+              floatData[4][indx] = float(fieldB(i,j,k,1) );
+              floatData[5][indx] = float(fieldB(i,j,k,2) );
           }
       }
 
@@ -590,7 +590,7 @@ void Writer::write_fields2D_circle(const Array2D<double3>& fieldE, const Array2D
     }
 
 }
-
+/*
 void Writer::write_fields3D(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, const long& timestep){
     
     MPI_File fField3D;
@@ -650,3 +650,4 @@ void Writer::write_fields3D(const Array3D<double3>& fieldE, const Array3D<double
     }
 
 }
+*/

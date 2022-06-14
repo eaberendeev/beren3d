@@ -1,7 +1,8 @@
 #ifndef MESH_H_
 #define MESH_H_
 #include "World.h"
-#include "Laser.h"
+#include "Read.h"
+//#include "Laser.h"
 #include <mpi.h>
 #include <map>
 #include <stdlib.h>
@@ -17,20 +18,24 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-double calc_energy_field(const Array3D<double3>& field);
-double3 get_fieldE_in_pos(const Array3D<double3>& fieldE, const double3& r);
-double3 get_fieldB_in_pos(const Array3D<double3>& fieldB, const double3& r);
-void exchange_fieldsE(Array3D<double3>& field,const MPI_Topology &MPIconf);
+double calc_energy_field(const Field3d& field);
+double3 get_fieldE_in_pos(const Field3d& fieldE, const double3& r);
+double3 get_fieldB_in_pos(const Field3d& fieldB, const double3& r);
+void exchange_fieldsE(Field3d& field,const MPI_Topology &MPIconf);
 
 struct Mesh{
     Mesh(const World& world);
 
-    Array3D<double3> fieldE;
-    Array3D<double3> fieldB;
-         
-    Array3D<double3> fieldJ;
-    Array3D<double3> fieldB0;
-    std::vector<Laser> lasers;
+    Operator identity;
+
+    //Sources and fields on the grid
+    Field3d chargeDensity;
+
+    Field3d fieldE;
+    Field3d fieldB;
+    Field3d fieldJ;
+
+    Field3d fieldB0;
     
     void set_fields();
 
@@ -51,7 +56,9 @@ struct Mesh{
     void reduce_current(const MPI_Topology &MPIconf);
     ~Mesh(){
     }
-
+    void clear(){
+        fieldJ = 0.;
+    }
     double get_coord_from_nodeX(long index) const{
         return (index - CELLS_SHIFT) * Dx;
     }

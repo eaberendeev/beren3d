@@ -19,7 +19,7 @@ BoundTypeY_glob = [BoundType.OPEN, BoundType.OPEN]
 BoundTypeZ_glob = [BoundType.OPEN, BoundType.OPEN]
 
 
-Queue = "36" # type of queue
+Queue = "home" # type of queue
 Cluster = "icc" # cluster name (spb, nsu, sscc)
 
 ####
@@ -29,7 +29,7 @@ DEBUG = 1
 
 SHAPE = 2  # 1 - PIC, 2 - Parabolic e.t.c
 
-IONIZATION = 1 # Fields ionization
+IONIZATION = 0 # Fields ionization
 
 PARTICLE_MASS = False #True ### Particle has individual mass
 PARTICLE_MPW = False ### Particle has individual macro particle weight
@@ -41,21 +41,21 @@ UPD_FIELDS = 1 # Update Fields (for Debug)
 
 #####
 
-NumProcs = 36*4 # number of processors
-NumAreas = 18 # Number of decomposition region
+NumProcs = 1 # number of processors
+NumAreas = 1 # Number of decomposition region
 
 
 Dx = 0.1 # step on X
 Dy = 0.1 # step on Y
 Dz = 0.1 # step on Z
 
-PlasmaCellsX_glob = 36*30 # Number of cells for Plasma on Z
+PlasmaCellsX_glob = 30 # Number of cells for Plasma on Z
 
-PlasmaCellsY_glob = 140 # Number of cells for Plasma on R 
-PlasmaCellsZ_glob = 140 # Number of cells for Plasma on R 
+PlasmaCellsY_glob = 40 # Number of cells for Plasma on R 
+PlasmaCellsZ_glob = 40 # Number of cells for Plasma on R 
 
-NumCellsY_glob = 400 # NumbeY of all cells in computation domain on R
-NumCellsZ_glob = 400 # NumbeY of all cells in computation domain on R
+NumCellsY_glob = 100 # NumbeY of all cells in computation domain on R
+NumCellsZ_glob = 100 # NumbeY of all cells in computation domain on R
 
 damp = 50
 DampCellsX_glob = [damp,damp] # Number of Damping layer cells on Z
@@ -69,13 +69,13 @@ NumCellsX_glob = PlasmaCellsX_glob + DampCellsX_glob[0]+DampCellsX_glob[1] # Num
 
 
 NumPartPerLine = 0 # Number of particles per line segment cell 
-NumPartPerCell = 20 #NumPartPerLine**3 # Number of particles per cell
+NumPartPerCell = 2 #NumPartPerLine**3 # Number of particles per cell
 
-MaxTime = 1000 # in 1/w_p
+MaxTime = 10 # in 1/w_p
 RecTime = 10090 #
 
 
-DiagDelay2D = 2 # in 1 / w_p
+DiagDelay2D = 1 # in 1 / w_p
 DiagDelay1D = 1 # in 1 / w_p
 outTime3D = [5,150,200]
 #DiagDelay3D = 10*DiagDelay2D # in 1 / w_p
@@ -164,7 +164,7 @@ sliceRadiationPlaneZ = [bbox_minZ + 20*Dz, bbox_maxZ - 20*Dz]
 
 radius1 = min(bbox_maxY - 20*Dy - bbox_centerY, bbox_maxZ - 20*Dz -bbox_centerZ)
 radius2 = min(bbox_maxY - 40*Dy - bbox_centerY, bbox_maxZ - 40*Dz -bbox_centerZ)
-radius3 = min(bbox_maxY - 60*Dy - bbox_centerY, bbox_maxZ - 60*Dz -bbox_centerZ)
+radius3 = min(bbox_maxY - 10*Dy - bbox_centerY, bbox_maxZ - 10*Dz -bbox_centerZ)
 radiationDiagRadiuses = [ radius1, radius2, radius3]
 for radius in radiationDiagRadiuses:
     if radius > 0.5*bbox_lenY:
@@ -192,7 +192,7 @@ Vb = 0.3#79 #0.995
 
 PName="Neutrals"
 
-Exist = True
+Exist = False
 PartDict = {}
 PartDict["Charge"] = 0.0
 PartDict["Density"] = 0.5
@@ -250,7 +250,7 @@ if Exist:
 
 PName="Ions"
 
-Exist = True
+Exist = False
 PartDict = {}
 PartDict["Charge"] = 1.0
 PartDict["Density"] = 0.5
@@ -286,7 +286,7 @@ if Exist :
 
 PName="Ions2"
 
-Exist = True
+Exist = False
 PartDict = {}
 PartDict["Charge"] = 2.0
 PartDict["Density"] = 0.5
@@ -390,7 +390,7 @@ LasParams = {} #
 DelayLeft =0.
 DelayRight = 0.
 LasName="LaserLeft"
-Exist = True
+Exist = False
 LasDict = {} #
 LasDict["delay"] = 0#DelayLeft*Las_tau
 LasDict["tau"] = Las_tau
@@ -408,7 +408,7 @@ if Exist:
 
 LaserAngle = PI/36.
 LasName="LaserRight"
-Exist = True
+Exist = False
 LasDict = {} #
 LasDict["delay"] = 0#DelayRight*Las_tau
 LasDict["tau"] = Las_tau

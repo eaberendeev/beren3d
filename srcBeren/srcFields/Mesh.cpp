@@ -3,13 +3,13 @@
 #include "Shape.h"
 #include "SolverFDTD.h"
 #include "SolverFDTD_PML.h"
-#include "Damping.h"
-#include "Coil.h"
+//#include "Damping.h"
+//#include "Coil.h"
 
 
 Mesh::Mesh(const World& world) : 
-          fieldE(world.region.numNodes),fieldB(world.region.numNodes),
-          fieldJ(world.region.numNodes),fieldB0(world.region.numNodes), _world(world){
+          fieldE(world.region.numNodes,3),fieldB(world.region.numNodes,3),
+          fieldJ(world.region.numNodes,3),fieldB0(world.region.numNodes,3), _world(world){
     
     if (RECOVERY){ 
       read_from_recovery(world.MPIconf);
@@ -18,37 +18,37 @@ Mesh::Mesh(const World& world) :
       set_fields();
     }
 
-    std::vector< std::vector<std::string> > stringParams;
-    read_params_to_string("Lasers","./LasParams.cfg",stringParams);
-    for( const auto &params  : stringParams){
-        lasers.emplace_back(params);
-    }
+  //  std::vector< std::vector<std::string> > stringParams;
+  //  read_params_to_string("Lasers","./LasParams.cfg",stringParams);
+  //  for( const auto &params  : stringParams){
+  //      lasers.emplace_back(params);
+  //  }
 }
 
 void Mesh::set_fields(){
 	set_uniform_fields();
-    if (BCoil[0] > 0){
-    set_coils(fieldB,_world);
-  }
+  //if (BCoil[0] > 0){
+  //  set_coils(fieldB,_world);
+  //}
   fieldB0 = fieldB;
 } 
 
 void Mesh::set_uniform_fields(){
   auto size = fieldE.size();
+  fieldE = 0.;
   //auto size_y = fieldE.size_d2();
   for( auto i = 0; i < size.x(); ++i){
     for( auto j = 0; j < size.y(); ++j){
       for( auto k = 0; k < size.z(); ++k){
-        fieldE(i,j,k) = 0;
-        fieldB(i,j,k).x() = BUniform[0];
-        fieldB(i,j,k).y() = BUniform[1];
-        fieldB(i,j,k).z() = BUniform[2];
+        fieldB(i,j,k,0) = BUniform[0];
+        fieldB(i,j,k,1) = BUniform[1];
+        fieldB(i,j,k,2) = BUniform[2];
       }
     }
   }
 }
 
-double calc_energy_field(const Array3D<double3>& field){
+double calc_energy_field(const Field3d& field){
   double potE = 0;
   long i_max = field.size().x() - ADD_NODES;
   long j_max = field.size().y() - ADD_NODES;
@@ -56,7 +56,8 @@ double calc_energy_field(const Array3D<double3>& field){
   for(auto i = 0; i < i_max; ++i){
     for(auto j = 0; j < j_max; ++j){
       for(auto k = 0; k < k_max; ++k){
-        potE += dot(field(i,j,k),field(i,j,k) );      
+        double3 v = double3(field(i,j,k,0),field(i,j,k,1),field(i,j,k,2));
+        potE += dot(v,v );      
       }
     }
   }
@@ -64,7 +65,7 @@ double calc_energy_field(const Array3D<double3>& field){
   return potE;
 }
 
-
+/*
 void Mesh::reduce_current(const MPI_Topology &MPIconf){
 
   int left, right;
@@ -151,30 +152,31 @@ void exchange_fieldsE(Array3D<double3>& fieldE, const MPI_Topology &MPIconf){
   MPI_Barrier(MPIconf.comm_line() );
   
 }
+*/
 
 double3 Mesh::get_fieldE_in_cell(long i, long j,long k)  const{
   double3 E;
-  E.x() = 0.25 * (fieldE(i,j,  k).x() + fieldE(i,j  ,k+1).x() 
-                + fieldE(i,j+1,k).x() + fieldE(i,j+1,k+1).x() );
+  E.x() = 0.25 * (fieldE(i,j,  k,0) + fieldE(i,j  ,k+1,0) 
+                + fieldE(i,j+1,k,0) + fieldE(i,j+1,k+1,0) );
   
-  E.y() = 0.25 * (fieldE(i,  j,k).y() + fieldE(i,  j,k+1).y() + 
-                  fieldE(i+1,j,k).y() + fieldE(i+1,j,k+1).y());
+  E.y() = 0.25 * (fieldE(i,  j,k,1) + fieldE(i,  j,k+1,1) + 
+                  fieldE(i+1,j,k,1) + fieldE(i+1,j,k+1,1) );
   
-  E.z() = 0.125 * (fieldE(i,  j,  k).z() + fieldE(i,  j,  k+1).z() + 
-                   fieldE(i,  j+1,k).z() + fieldE(i,  j+1,k+1).z() +
-                   fieldE(i+1,j,  k).z() + fieldE(i+1,j,  k+1).z() + 
-                   fieldE(i+1,j+1,k).z() + fieldE(i+1,j+1,k+1).z() );
+  E.z() = 0.125 * (fieldE(i,  j,  k,2) + fieldE(i,  j,  k+1,2) + 
+                   fieldE(i,  j+1,k,2) + fieldE(i,  j+1,k+1,2) +
+                   fieldE(i+1,j,  k,2) + fieldE(i+1,j,  k+1,2) + 
+                   fieldE(i+1,j+1,k,2) + fieldE(i+1,j+1,k+1,2) );
   return E;
 }
 double3 Mesh::get_fieldB_in_cell(long i, long j,long k)  const{
   double3 B;
-  B.x() = 0.25 * (fieldB(i,  j,k).x() + fieldB(i,  j,k+1).x() +
-                  fieldB(i+1,j,k).x() + fieldB(i+1,j,k+1).x() );
+  B.x() = 0.25 * (fieldB(i,  j,k,0) + fieldB(i,  j,k+1,0) +
+                  fieldB(i+1,j,k,0) + fieldB(i+1,j,k+1,0) );
   
-  B.y() = 0.25 * (fieldB(i,j,  k).y() + fieldB(i,j,  k+1).y() +
-                  fieldB(i,j+1,k).y() + fieldB(i,j+1,k+1).y() );
+  B.y() = 0.25 * (fieldB(i,j,  k,1) + fieldB(i,j,  k+1,1) +
+                  fieldB(i,j+1,k,1) + fieldB(i,j+1,k+1,1) );
   
-  B.z() = fieldB(i,j,k).z();
+  B.z() = fieldB(i,j,k,2);
   return B;
 }
 inline double Shape2(const double& dist){
@@ -277,7 +279,7 @@ double3 Mesh::get_fieldE_in_pos(const double3& r)  const{
     }
     return ep;
 }*/
-double3 get_fieldE_in_pos(const Array3D<double3>& fieldE,const double3& r) {
+double3 get_fieldE_in_pos(const Field3d& fieldE,const double3& r) {
 
     double3 E;
     long indx, indy,indz,indx1, indy1,indz1;
@@ -318,24 +320,24 @@ double3 get_fieldE_in_pos(const Array3D<double3>& fieldE,const double3& r) {
     sdy0 = 1. - sdy1;
     sdz0 = 1. - sdz1;
 
-    E.x() += sdx0 * ( sy0 * ( sz0 * fieldE(indx1,indy,indz).x() + sz1 * fieldE(indx1,indy,indz+1).x() ) 
-                + sy1 * ( sz0 * fieldE(indx1,indy+1,indz).x() + sz1 * fieldE(indx1,indy+1,indz+1).x() ) ) 
-        + sdx1 * ( sy0 * ( sz0 * fieldE(indx1+1,indy,indz).x() + sz1 * fieldE(indx1+1,indy,indz+1).x() ) 
-                + sy1 * ( sz0 * fieldE(indx1+1,indy+1,indz).x() + sz1 * fieldE(indx1+1,indy+1,indz+1).x() ) );
+    E.x() += sdx0 * ( sy0 * ( sz0 * fieldE(indx1,indy,indz,0) + sz1 * fieldE(indx1,indy,indz+1,0) ) 
+                + sy1 * ( sz0 * fieldE(indx1,indy+1,indz,0) + sz1 * fieldE(indx1,indy+1,indz+1,0) ) ) 
+        + sdx1 * ( sy0 * ( sz0 * fieldE(indx1+1,indy,indz,0) + sz1 * fieldE(indx1+1,indy,indz+1,0) ) 
+                + sy1 * ( sz0 * fieldE(indx1+1,indy+1,indz,0) + sz1 * fieldE(indx1+1,indy+1,indz+1,0) ) );
 
-    E.y() += sx0 * ( sdy0 * ( sz0 * fieldE(indx,indy1,indz).y() + sz1 * fieldE(indx,indy1,indz+1).y() ) 
-                + sdy1 * ( sz0 * fieldE(indx,indy1+1,indz).y() + sz1 * fieldE(indx,indy1+1,indz+1).y() ) ) 
-        + sx1 * ( sdy0 * ( sz0 * fieldE(indx+1,indy1,indz).y() + sz1 * fieldE(indx+1,indy1,indz+1).y() ) 
-                + sdy1 * ( sz0 * fieldE(indx+1,indy1+1,indz).y() + sz1 * fieldE(indx+1,indy1+1,indz+1).y() ) );
+    E.y() += sx0 * ( sdy0 * ( sz0 * fieldE(indx,indy1,indz,1) + sz1 * fieldE(indx,indy1,indz+1,1) ) 
+                + sdy1 * ( sz0 * fieldE(indx,indy1+1,indz,1) + sz1 * fieldE(indx,indy1+1,indz+1,1) ) ) 
+        + sx1 * ( sdy0 * ( sz0 * fieldE(indx+1,indy1,indz,1) + sz1 * fieldE(indx+1,indy1,indz+1,1) ) 
+                + sdy1 * ( sz0 * fieldE(indx+1,indy1+1,indz,1) + sz1 * fieldE(indx+1,indy1+1,indz+1,1) ) );
 
-    E.z() += sx0 * ( sy0 * ( sdz0 * fieldE(indx,indy,indz1).z() + sdz1 * fieldE(indx,indy,indz1+1).z() ) 
-                + sy1 * ( sdz0 * fieldE(indx,indy+1,indz1).z() + sdz1 * fieldE(indx,indy+1,indz1+1).z() ) ) 
-        + sx1 * ( sy0 * ( sdz0 * fieldE(indx+1,indy,indz1).z() + sdz1 * fieldE(indx+1,indy,indz1+1).z() ) 
-                + sy1 * ( sdz0 * fieldE(indx+1,indy+1,indz1).z() + sdz1 * fieldE(indx+1,indy+1,indz1+1).z() ) );
+    E.z() += sx0 * ( sy0 * ( sdz0 * fieldE(indx,indy,indz1,2) + sdz1 * fieldE(indx,indy,indz1+1,2) ) 
+                + sy1 * ( sdz0 * fieldE(indx,indy+1,indz1,2) + sdz1 * fieldE(indx,indy+1,indz1+1,2) ) ) 
+        + sx1 * ( sy0 * ( sdz0 * fieldE(indx+1,indy,indz1,2) + sdz1 * fieldE(indx+1,indy,indz1+1,2) ) 
+                + sy1 * ( sdz0 * fieldE(indx+1,indy+1,indz1,2) + sdz1 * fieldE(indx+1,indy+1,indz1+1,2) ) );
 
     return E;
 }
-double3 get_fieldB_in_pos(const Array3D<double3>& fieldB, const double3& r) {
+double3 get_fieldB_in_pos(const Field3d& fieldB, const double3& r) {
 
     double3 B;
     long indx, indy,indz,indx1, indy1,indz1;
@@ -376,20 +378,20 @@ double3 get_fieldB_in_pos(const Array3D<double3>& fieldB, const double3& r) {
     sdy0 = 1. - sdy1;
     sdz0 = 1. - sdz1;
 
-  B.x() += sx0 * ( sdy0 * ( sdz0 * fieldB(indx,indy1,indz1).x() + sdz1 * fieldB(indx,indy1,indz1+1).x() ) 
-               + sdy1 * ( sdz0 * fieldB(indx,indy1+1,indz1).x() + sdz1 * fieldB(indx,indy1+1,indz1+1).x() ) ) 
-       + sx1 * ( sdy0 * ( sdz0 * fieldB(indx+1,indy1,indz1).x() + sdz1 * fieldB(indx+1,indy1,indz1+1).x() ) 
-               + sdy1 * ( sdz0 * fieldB(indx+1,indy1+1,indz1).x() + sdz1 * fieldB(indx+1,indy1+1,indz1+1).x() ) );
+  B.x() += sx0 * ( sdy0 * ( sdz0 * fieldB(indx,indy1,indz1,0) + sdz1 * fieldB(indx,indy1,indz1+1,0) ) 
+               + sdy1 * ( sdz0 * fieldB(indx,indy1+1,indz1,0) + sdz1 * fieldB(indx,indy1+1,indz1+1,0) ) ) 
+       + sx1 * ( sdy0 * ( sdz0 * fieldB(indx+1,indy1,indz1,0) + sdz1 * fieldB(indx+1,indy1,indz1+1,0) ) 
+               + sdy1 * ( sdz0 * fieldB(indx+1,indy1+1,indz1,0) + sdz1 * fieldB(indx+1,indy1+1,indz1+1,0) ) );
 
-  B.y() += sdx0 * ( sy0 * ( sdz0 * fieldB(indx1,indy,indz1).y() + sdz1 * fieldB(indx1,indy,indz1+1).y() ) 
-              + sy1 * ( sdz0 * fieldB(indx1,indy+1,indz1).y() + sdz1 * fieldB(indx1,indy+1,indz1+1).y() ) ) 
-      + sdx1 * ( sy0 * ( sdz0 * fieldB(indx1+1,indy,indz1).y() + sdz1 * fieldB(indx1+1,indy,indz1+1).y() ) 
-              + sy1 * ( sdz0 * fieldB(indx1+1,indy+1,indz1).y() + sdz1 * fieldB(indx1+1,indy+1,indz1+1).y() ) );
+  B.y() += sdx0 * ( sy0 * ( sdz0 * fieldB(indx1,indy,indz1,1) + sdz1 * fieldB(indx1,indy,indz1+1,1) ) 
+              + sy1 * ( sdz0 * fieldB(indx1,indy+1,indz1,1) + sdz1 * fieldB(indx1,indy+1,indz1+1,1) ) ) 
+      + sdx1 * ( sy0 * ( sdz0 * fieldB(indx1+1,indy,indz1,1) + sdz1 * fieldB(indx1+1,indy,indz1+1,1) ) 
+              + sy1 * ( sdz0 * fieldB(indx1+1,indy+1,indz1,1) + sdz1 * fieldB(indx1+1,indy+1,indz1+1,1) ) );
 
-  B.z() += sdx0 * ( sdy0 * ( sz0 * fieldB(indx1,indy1,indz).z() + sz1 * fieldB(indx1,indy1,indz+1).z() ) 
-              + sdy1 * ( sz0 * fieldB(indx1,indy1+1,indz).z() + sz1 * fieldB(indx1,indy1+1,indz+1).z() ) ) 
-      + sdx1 * ( sdy0 * ( sz0 * fieldB(indx1+1,indy1,indz).z() + sz1 * fieldB(indx1+1,indy1,indz+1).z() ) 
-              + sdy1 * ( sz0 * fieldB(indx1+1,indy1+1,indz).z() + sz1 * fieldB(indx1+1,indy1+1,indz+1).z() ) );
+  B.z() += sdx0 * ( sdy0 * ( sz0 * fieldB(indx1,indy1,indz,2) + sz1 * fieldB(indx1,indy1,indz+1,2) ) 
+              + sdy1 * ( sz0 * fieldB(indx1,indy1+1,indz,2) + sz1 * fieldB(indx1,indy1+1,indz+1,2) ) ) 
+      + sdx1 * ( sdy0 * ( sz0 * fieldB(indx1+1,indy1,indz,2) + sz1 * fieldB(indx1+1,indy1,indz+1,2) ) 
+              + sdy1 * ( sz0 * fieldB(indx1+1,indy1+1,indz,2) + sz1 * fieldB(indx1+1,indy1+1,indz+1,2) ) );
 
     return B;
 }
@@ -398,11 +400,11 @@ double3 get_fieldB_in_pos(const Array3D<double3>& fieldB, const double3& r) {
 void Mesh::update(long timestep){
     
     fieldB -= fieldB0;
-    laser_source(timestep);
+    //laser_source(timestep);
     
     #if DAMP_FIELDS == DAMP
       solver_FDTD(fieldE, fieldB, fieldJ, _world);
-      damping_fields(fieldE, fieldB,_world.region);
+    //  damping_fields(fieldE, fieldB,_world.region);
 
     #elif DAMP_FIELDS == PML
      // solver_FDTD_PML(fieldE, fieldB,fieldEp, fieldBp, fieldJ, _world);
