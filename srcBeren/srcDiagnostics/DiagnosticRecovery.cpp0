@@ -1,0 +1,118 @@
+#include "Diagnostic.h"
+
+
+void RWriter::read_recovery_fields( World &world){
+	read_array_from_recovery(".//Recovery//Fields//FieldsE",world.fieldE);	
+	read_array_from_recovery(".//Recovery//Fields//FieldsB",world.fieldB);	
+	
+	if(DAMP_FIELDS == PML){
+		read_array_from_recovery(".//Recovery//Fields//FieldsEPML",world.fieldEp);	
+		read_array_from_recovery(".//Recovery//Fields//FieldsBPML",world.fieldBp);
+  }	
+} 
+
+void RWriter::read_array_from_recovery(const std::string& dataName, Array2D<double3>& field){
+  FILE *fFields;
+  char filename[100];
+  long info1,info2;
+  auto nd1 = field.size_d1();
+  auto nd2 = field.size_d2();
+      
+  if( MPIconf.IsMasterDepth() ){
+
+    sprintf(filename, (dataName + "%03ld").c_str(),MPIconf.RankLine);  
+     
+    fFields = fopen(filename, "rb");
+        
+    size_t result = fread(&info1, sizeof(long), 1, fFields);
+    assert(result == sizeof(long) && "Number of reading byte is incorrect");
+
+    result = fread(&info2, sizeof(long), 1, fFields);
+    assert(result == sizeof(long) && "Number of reading byte is incorrect");
+
+    assert(info1 ==  nd1 && info2 == nd2 && "Invalid Field size from read");
+      
+    result = fread(&field.data(0), 3 * nd1 * nd2 * sizeof(double), 1, fFields);    
+    assert(result == 3 * nd1 * nd2 * sizeof(double) && "Number of reading byte is incorrect");
+
+    fclose(fFields);
+
+  }
+
+  MPI_Bcast( &field.data(0), 3 * nd1 * nd2, MPI_DOUBLE, 0, MPIconf.CommDepth );
+  
+}
+
+void RWriter::write_array_to_recovery(const std::string& dataName, const Array2D<double3>& field){
+    FILE *fFields;
+    char filename[100];
+    long info;
+    auto nd1 = field.size_d1();
+    auto nd2 = field.size_d2();
+
+    sprintf(filename, (dataName + "%03ld").c_str(),MPIconf.RankLine);
+
+    fFields = fopen(filename, "wb");
+
+    info = nd1;
+    fwrite(&info, sizeof(long), 1, fFields);
+    info = nd2;
+    fwrite(&info, sizeof(long), 1, fFields);
+    
+    fwrite(&field.data(0), 3 * nd1 * nd2 * sizeof(double), 1, fFields);
+    
+  fclose(fFields);
+  
+}
+
+void RWriter::read_recovery_particles(ParticlesArray &particles){
+	FILE *fParticles;
+	long info;
+	Particle particle;
+    char filename[100];
+	sprintf(filename, (".//Recovery//Particles//"+particles.name+"%03ld"+".rec").c_str(),MPIconf.Rank);
+	
+	fParticles = fopen(filename, "rb");
+	 size_t result = fread(&info, sizeof(long), 1, fParticles);
+       assert(result == sizeof(long) && "Number of reading byte is incorrect");
+	//particles.size = info;
+	std::cout << "Raed " << info << " particles "<< particles.name << std::endl;
+	//if (info != 0)
+	//	fread(particlesArray.particlesData.data, sizeof(Particle)*info, 1, fParticles);
+	while (info>0){	
+		 result = fread(&particle, sizeof(Particle), 1, fParticles);
+         assert(result == sizeof(Particle) && "Number of reading byte is incorrect");
+		particles.particlesData.add(particle);
+		--info;
+	}
+	fclose(fParticles);
+
+}
+void RWriter::write_recovery_particles(const std::string& dataName,const ParticlesArray &particles){
+	FILE *fParticles;
+  char filename[100];
+	sprintf(filename, (dataName + particles.name+"%03ld").c_str(),MPIconf.Rank);
+	
+	fParticles = fopen(filename, "wb");
+	
+	long info = particles.size();
+	fwrite(&info, sizeof(long), 1, fParticles);
+	fwrite(&particles.particlesData(0), sizeof(Particle)*info, 1, fParticles);
+	fclose(fParticles);
+
+}
+
+void RWriter::write_recovery(const World &world, const std::vector<ParticlesArray> &species){
+  
+  for(const auto &sp: species){
+    write_recovery_particles(".//Recovery//Particles//",sp);
+  }
+
+  write_array_to_recovery(".//Recovery//Fields//FieldsE", world.fieldE);
+  write_array_to_recovery(".//Recovery//Fields//FieldsB", world.fieldB);
+  
+  if(DAMP_FIELDS == PML){
+    write_array_to_recovery(".//Recovery//Fields//FieldsEPML", world.fieldEp);
+    write_array_to_recovery(".//Recovery//Fields//FieldsBPML", world.fieldBp);
+  }
+}

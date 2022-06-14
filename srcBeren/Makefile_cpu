@@ -1,0 +1,16 @@
+CXX = mpicxx
+source_dirs := . srcFields srcParticles srcDiagnostics
+
+search_wildcards       := $(addsuffix /*.cpp,$(source_dirs)) 
+override compile_flags += -Wall -pipe -std=c++11 -cxx=g++ -O3 
+
+Beren3D: $(notdir $(patsubst %.cpp,%.o,$(wildcard $(search_wildcards))))
+	$(CXX) $^ $(compile_flags) -o $@
+
+VPATH := $(source_dirs)
+     
+%.o: %.cpp
+	$(CXX) -c -MD $(compile_flags) $(addprefix -I,$(source_dirs))  $^
+
+clean:
+	rm -f Beren3D *.o *.d

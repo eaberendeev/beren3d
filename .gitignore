@@ -1,0 +1,13 @@
+*.directory
+*.directory.lock
+*.tmp
+*.cfg
+./srcLuthien/const.h
+./srcLuthien/DeviceType.hpp
+Res_*
+Recovery*
+PlotScripts/__pycache__/LibPlot.cpython-34.pyc
+PlotScripts/__pycache__/ReadDataLib.cpython-34.pyc
+const.h
+DeviceType.hpp
+defines.h
