@@ -46,12 +46,12 @@ void collision_fields( ParticlesArray& particlesBasic, ParticlesArray& particles
 		E_loc = get_fieldE_in_pos(mesh.fieldE,particlesBasic(k).coord);
 	
 		E_laser = 0.;
-		for (const auto &las: mesh.lasers){
-			coordGlob = world.region.get_coord_glob(particlesBasic(k).coord);
-			if(las.type == "Virtual"){
-		 		E_laser += las.get_field_coll(coordGlob, timestep);
-		 	}
-		}
+		// for (const auto &las: mesh.lasers){
+		// 	coordGlob = world.region.get_coord_glob(particlesBasic(k).coord);
+		// 	if(las.type == "Virtual"){
+		//  		E_laser += las.get_field_coll(coordGlob, timestep);
+		//  	}
+		// }
 		
 		E_loc += E_laser;
 		Eabs = mag(E_loc);

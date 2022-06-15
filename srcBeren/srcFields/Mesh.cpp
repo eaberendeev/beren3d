@@ -65,50 +65,50 @@ double calc_energy_field(const Field3d& field){
   return potE;
 }
 
-/*
+
 void Mesh::reduce_current(const MPI_Topology &MPIconf){
 
-  int left, right;
-  int tag = 1;
-  MPI_Status status;
-  int bufSize = ADD_NODES * fieldJ.size().y()*fieldJ.size().z();
-  long sendIndx; 
-  static double3 *recvBuf = new double3[bufSize];
+  // int left, right;
+  // int tag = 1;
+  // MPI_Status status;
+  // int bufSize = ADD_NODES * fieldJ.size().y()*fieldJ.size().z();
+  // long sendIndx; 
+  // static double3 *recvBuf = new double3[bufSize];
   
-  MPI_Allreduce ( MPI_IN_PLACE, &fieldJ.data(0), 3*fieldJ.capacity(), MPI_DOUBLE, MPI_SUM, MPIconf.comm_depth() ) ;
+  // MPI_Allreduce ( MPI_IN_PLACE, &fieldJ.data(0), 3*fieldJ.capacity(), MPI_DOUBLE, MPI_SUM, MPIconf.comm_depth() ) ;
   
-  MPI_Barrier(MPI_COMM_WORLD);
+  // MPI_Barrier(MPI_COMM_WORLD);
 
   
-  if (MPIconf.rank_line() < MPIconf.size_line() - 1)
-    right = MPIconf.rank_line() + 1;
-  else
-    right = 0;
+  // if (MPIconf.rank_line() < MPIconf.size_line() - 1)
+  //   right = MPIconf.rank_line() + 1;
+  // else
+  //   right = 0;
   
-  if (MPIconf.rank_line() > 0)
-    left = MPIconf.rank_line() - 1;
-  else
-    left = MPIconf.size_line() - 1;
+  // if (MPIconf.rank_line() > 0)
+  //   left = MPIconf.rank_line() - 1;
+  // else
+  //   left = MPIconf.size_line() - 1;
 
 
-  sendIndx = fieldJ.capacity()-bufSize;
-  // fromRight to Left
-  MPI_Sendrecv(&fieldJ.data(sendIndx), 3*bufSize, MPI_DOUBLE_PRECISION, right, tag, 
-                           recvBuf, 3*bufSize, MPI_DOUBLE_PRECISION, left, tag, 
-                           MPIconf.comm_line(), &status);
+  // sendIndx = fieldJ.capacity()-bufSize;
+  // // fromRight to Left
+  // MPI_Sendrecv(&fieldJ.data(sendIndx), 3*bufSize, MPI_DOUBLE_PRECISION, right, tag, 
+  //                          recvBuf, 3*bufSize, MPI_DOUBLE_PRECISION, left, tag, 
+  //                          MPIconf.comm_line(), &status);
   
-  for (long i = 0; i< bufSize; i++){
-    fieldJ.data(i) += recvBuf[i];
+  // for (long i = 0; i< bufSize; i++){
+  //   fieldJ.data(i) += recvBuf[i];
 
-  }
+  // }
   
-  MPI_Sendrecv(&fieldJ.data(0), 3*bufSize, MPI_DOUBLE_PRECISION,left , tag, 
-                           &fieldJ.data(sendIndx), 3*bufSize, MPI_DOUBLE_PRECISION, right, tag, 
-                           MPIconf.comm_line(), &status);
+  // MPI_Sendrecv(&fieldJ.data(0), 3*bufSize, MPI_DOUBLE_PRECISION,left , tag, 
+  //                          &fieldJ.data(sendIndx), 3*bufSize, MPI_DOUBLE_PRECISION, right, tag, 
+  //                          MPIconf.comm_line(), &status);
 
   
 }
-
+/*
 void exchange_fieldsE(Array3D<double3>& fieldE, const MPI_Topology &MPIconf){
 
   int tag = 1;

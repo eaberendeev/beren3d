@@ -49,15 +49,15 @@ Dx = 0.1 # step on X
 Dy = 0.1 # step on Y
 Dz = 0.1 # step on Z
 
-PlasmaCellsX_glob = 30 # Number of cells for Plasma on Z
+PlasmaCellsX_glob = 50 # Number of cells for Plasma on Z
 
-PlasmaCellsY_glob = 40 # Number of cells for Plasma on R 
-PlasmaCellsZ_glob = 40 # Number of cells for Plasma on R 
+PlasmaCellsY_glob = 20 # Number of cells for Plasma on R 
+PlasmaCellsZ_glob = 20 # Number of cells for Plasma on R 
 
 NumCellsY_glob = 100 # NumbeY of all cells in computation domain on R
 NumCellsZ_glob = 100 # NumbeY of all cells in computation domain on R
 
-damp = 50
+damp = 10
 DampCellsX_glob = [damp,damp] # Number of Damping layer cells on Z
 DampCellsXP_glob = [10,10] # Number of Damping layer cells on Z near Plasma 
 DampCellsY_glob = [damp,damp] # Number of Damping layer cells on Y
@@ -71,7 +71,7 @@ NumCellsX_glob = PlasmaCellsX_glob + DampCellsX_glob[0]+DampCellsX_glob[1] # Num
 NumPartPerLine = 0 # Number of particles per line segment cell 
 NumPartPerCell = 2 #NumPartPerLine**3 # Number of particles per cell
 
-MaxTime = 10 # in 1/w_p
+MaxTime = 30 # in 1/w_p
 RecTime = 10090 #
 
 
@@ -237,7 +237,7 @@ PartDict["Shift"] = 0.0
 PartDict["SmoothMass"] = 0.0
 PartDict["BoundResumption"] = 1
 InitDist = "None"
-#InitDist = "UniformCircle"
+InitDist = "UniformCircle"
 #InitDist = "UniformCosX_dn_k"
 dn0 = 0.1
 k0 = 1./Vb

@@ -1,5 +1,5 @@
-#!/home/eberendeev/anaconda3/bin/python3
 #!/usr/bin/python3
+#!/home/eberendeev/anaconda3/bin/python3
 #!/home/fano.icmmg/berendeev_e_a/anaconda3/bin/python3
 #!/mnt/storage/home/eaberendeev/anaconda3/bin/python3
 #!/mnt/storage/home/aaefimova/anaconda3/bin/python3
@@ -40,7 +40,7 @@ from LibPlot import *
 WorkDir='../'
 
 FieldsAmp=0.025 #амплитуда палитры для 3D полей
-StartTime = 150 #len(Files)-1 #-rank #StartNum+  rank
+StartTime = 10 #len(Files)-1 #-rank #StartNum+  rank
 node = "201"
 nodeX = "591"
 #словарь с системными параметрами

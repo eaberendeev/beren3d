@@ -6,8 +6,8 @@
 #include "Read.h"
 #include "Particles.h"
 #include "Timer.h"
-void write_array2D(const Field2d& data, long size1, long size2, const char* filename, const MPI_Topology& MPIconf);
-//void write_array3D(const Array3D<double>& data, long size1, long size2, long size3, const char* filename, const MPI_Topology& MPIconf);
+void write_array2D(const Array2D<double>& data, long size1, long size2, const char* filename, const MPI_Topology& MPIconf);
+void write_array3D(const Array3D<double>& data, long size1, long size2, long size3, const char* filename, const MPI_Topology& MPIconf);
 
 
 
@@ -154,13 +154,13 @@ public:
 
     void diag_zond(long timestep);
     //void diag_zond_lineX_bin(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB,long timestep);
-    void write_fields_lineX(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long timestep);
-    void write_fields_lineY(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long timestep);
-    void write_fields_lineZ(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, long timestep);
-    void write_fields3D(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB,  const long& timestep);
-    void write_fields2D_planeX(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, double coord, const long& timestep);
-    void write_fields2D_planeY(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, double coord, const long& timestep);
-    void write_fields2D_planeZ(const Array3D<double3>& fieldE, const Array3D<double3>& fieldB, double coord, const long& timestep);
+    void write_fields_lineX(const Field3d& fieldE, const Field3d& fieldB, long timestep);
+    void write_fields_lineY(const Field3d& fieldE, const Field3d& fieldB, long timestep);
+    void write_fields_lineZ(const Field3d& fieldE, const Field3d& fieldB, long timestep);
+    void write_fields3D(const Field3d& fieldE, const Field3d& fieldB,  const long& timestep);
+    void write_fields2D_planeX(const Field3d& fieldE, const Field3d& fieldB, double coord, const long& timestep);
+    void write_fields2D_planeY(const Field3d& fieldE, const Field3d& fieldB, double coord, const long& timestep);
+    void write_fields2D_planeZ(const Field3d& fieldE, const Field3d& fieldB, double coord, const long& timestep);
     void write_fields_circle( long timestep);
     void write_fields2D_circle(const Array2D<double3>& fieldE, const Array2D<double3>& fieldB, long series, const long& timestep);
 

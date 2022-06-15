@@ -6,6 +6,8 @@
 ./srcLuthien/DeviceType.hpp
 Res_*
 Recovery*
+*.o
+*.d
 PlotScripts/__pycache__/LibPlot.cpython-34.pyc
 PlotScripts/__pycache__/ReadDataLib.cpython-34.pyc
 const.h

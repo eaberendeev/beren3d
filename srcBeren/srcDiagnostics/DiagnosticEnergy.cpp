@@ -157,7 +157,7 @@ void DiagData::calc_radiation_pointing_box(const Mesh &mesh,const Region &region
 */
 
 
-
+/*
 void DiagData::calc_radiation_pointing_planeX(Array2D<double>& dataPlaneX, double coordX, const Mesh &mesh, const Region &region){
   double3 E, B, r;
 
@@ -292,7 +292,7 @@ void Writer::write_radiation_planes(long timestep){
     }
 }
 
-/*
+
 void Writer::write_radiation_line(long timestep){
     const Region &region = _world.region;
     const MPI_Topology &MPIconf = _world.MPIconf;

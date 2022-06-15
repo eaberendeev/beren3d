@@ -106,22 +106,22 @@ void Writer::output(long timestep){
 
 ////// Calculation power of radiation ///////    
 /////////////////////////////////////////////
-    /// Radiation on plane X
-    for (ulong i = 0; i < diagData.powerRadPlaneX.size(); i++){
-        diagData.calc_radiation_pointing_planeX(diagData.powerRadPlaneX[i], diagData.params.sliceRadiationPlaneX[i], _mesh,_world.region);
-    }
-    /// Radiation on plane Y
-    for (ulong i = 0; i < diagData.powerRadPlaneY.size(); i++){
-        diagData.calc_radiation_pointing_planeY(diagData.powerRadPlaneY[i], diagData.params.sliceRadiationPlaneY[i], _mesh,_world.region);
-    }
-    /// Radiation on plane Z
-    for (ulong i = 0; i < diagData.powerRadPlaneZ.size(); i++){
-        diagData.calc_radiation_pointing_planeZ(diagData.powerRadPlaneZ[i], diagData.params.sliceRadiationPlaneZ[i], _mesh,_world.region);
-    }
-    /// Radiation on circle
-    for (auto& radial : diagData.radialDiag){
-        radial.calc_radiation_pointing_circle2D(_mesh);
-    }
+    // /// Radiation on plane X
+    // for (ulong i = 0; i < diagData.powerRadPlaneX.size(); i++){
+    //     diagData.calc_radiation_pointing_planeX(diagData.powerRadPlaneX[i], diagData.params.sliceRadiationPlaneX[i], _mesh,_world.region);
+    // }
+    // /// Radiation on plane Y
+    // for (ulong i = 0; i < diagData.powerRadPlaneY.size(); i++){
+    //     diagData.calc_radiation_pointing_planeY(diagData.powerRadPlaneY[i], diagData.params.sliceRadiationPlaneY[i], _mesh,_world.region);
+    // }
+    // /// Radiation on plane Z
+    // for (ulong i = 0; i < diagData.powerRadPlaneZ.size(); i++){
+    //     diagData.calc_radiation_pointing_planeZ(diagData.powerRadPlaneZ[i], diagData.params.sliceRadiationPlaneZ[i], _mesh,_world.region);
+    // }
+    // /// Radiation on circle
+    // for (auto& radial : diagData.radialDiag){
+    //     radial.calc_radiation_pointing_circle2D(_mesh);
+    // }
 
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -133,8 +133,8 @@ void Writer::output(long timestep){
 /////// 2D DATA //////////////////////////////
     if (timestep % TimeStepDelayDiag2D == 0){
 
-        write_radiation_circle2D(timestep);
-        write_radiation_planes(timestep);
+       // write_radiation_circle2D(timestep);
+        //write_radiation_planes(timestep);
 
         write_particles2D(timestep);
 
@@ -168,10 +168,10 @@ void Writer::output(long timestep){
 ////// 1D DATA ////////////////////////////////
     if (timestep % 2 == 0){
       diag_zond(timestep);
-      write_fields_lineX(_mesh.fieldE, _mesh.fieldB, timestep);
-      write_fields_lineY(_mesh.fieldE, _mesh.fieldB, timestep);
-      write_fields_lineZ(_mesh.fieldE, _mesh.fieldB, timestep);
-      write_fields_circle(timestep);
+    //  write_fields_lineX(_mesh.fieldE, _mesh.fieldB, timestep);
+      //write_fields_lineY(_mesh.fieldE, _mesh.fieldB, timestep);
+     // write_fields_lineZ(_mesh.fieldE, _mesh.fieldB, timestep);
+     // write_fields_circle(timestep);
     }
 
     if (timestep % TimeStepDelayDiag1D == 0){
@@ -305,43 +305,43 @@ void write_array2D(const Array2D<double>& data, long size1, long size2, const ch
 // }
 
 
-// void write_array3D(const Field3d& data, long size1, long size2, long size3,const char* filename, const MPI_Topology& MPIconf){
-//     MPI_File fData3D;
-//     MPI_Status status;
-//     //long sumSize1,indx;
-//     float info;
+void write_array3D(const Array3D<double>& data, long size1, long size2, long size3,const char* filename, const MPI_Topology& MPIconf){
+    MPI_File fData3D;
+    MPI_Status status;
+    //long sumSize1,indx;
+    float info;
     
-//     //if ( !MPIconf.is_master_depth() ) return;
+    //if ( !MPIconf.is_master_depth() ) return;
 
-//     Array3D<float> floatData(size1,size2,size3);
-//     int sizeData = size1*size2*size3;
+    Array3D<float> floatData(size1,size2,size3);
+    int sizeData = size1*size2*size3;
 
-//     MPI_File_open(MPIconf.comm_depth(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fData3D);
+    MPI_File_open(MPIconf.comm_depth(), filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fData3D);
 
-//     for( auto i = 0; i < size1; ++i ){
-//        for( auto j = 0; j < size2; ++j ){
-//          for( auto k = 0; k < size3; ++k ){
-//             floatData(i,j,k) = float(data(i,j,k));
-//         }
-//       }
-//     }
+    for( auto i = 0; i < size1; ++i ){
+       for( auto j = 0; j < size2; ++j ){
+         for( auto k = 0; k < size3; ++k ){
+            floatData(i,j,k) = float(data(i,j,k));
+        }
+      }
+    }
 
-//     long startWrite = 3 * sizeof(float);
+    long startWrite = 3 * sizeof(float);
 
-//     if( MPIconf.is_master_depth() ){
-//           info = float(size1);
-//           MPI_File_write_at(fData3D, 0,&info, 1,MPI_FLOAT, &status);
-//           info = float(size2);
-//           MPI_File_write_at(fData3D, sizeof(float),&info, 1,MPI_FLOAT, &status);
-//           info = float(size3);
-//           MPI_File_write_at(fData3D, 2*sizeof(float),&info, 1,MPI_FLOAT, &status);
+    if( MPIconf.is_master_depth() ){
+          info = float(size1);
+          MPI_File_write_at(fData3D, 0,&info, 1,MPI_FLOAT, &status);
+          info = float(size2);
+          MPI_File_write_at(fData3D, sizeof(float),&info, 1,MPI_FLOAT, &status);
+          info = float(size3);
+          MPI_File_write_at(fData3D, 2*sizeof(float),&info, 1,MPI_FLOAT, &status);
 
-//           MPI_File_write_at(fData3D, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
-//     }
+          MPI_File_write_at(fData3D, startWrite, &floatData.data(0), sizeData, MPI_FLOAT, &status);
+    }
         
-//     MPI_File_close(&fData3D);
+    MPI_File_close(&fData3D);
 
-// }
+}
 
 /*
 void write_array3D(const Array3D<double>& data, long size1, long size2, long size3,const char* filename, const MPI_Topology& MPIconf){
