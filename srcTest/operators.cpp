@@ -76,25 +76,26 @@ void stencil_mat_xy(vector<Trip>& trips) {
 			for(int z = 0; z < Nz; z++) {
 				//this is a vector operator
 				for(int c = 0; c < 1; c++) {
+
 					int cur = vind(x, y, z, c);
-					double valy = -0.25*dt*dt/(dy*dy);
-					double valz = - 0.25*dt*dt/(dz*dz);
-					trips.push_back(Trip(cur, cur, 1-2.*valy - 2.*valz ));
-					if(y!=Ny-1){
+					int cur1 = cur + Nx*Ny*Nz;
+					double valxy = -0.25*dt*dt/(dx*dy);
+					trips.push_back(Trip(cur1, cur, -valxy ));
+					if(x!=Nx-1){
 						cur = vind(x, y+1, z, c);
-						trips.push_back(Trip(cur, cur, valy ));
+						trips.push_back(Trip(cur1, cur, valy ));
 					}
 					if(y!=0) {
 						cur = vind(x, y-1, z, c);
-						trips.push_back(Trip(cur, cur, valy ));
+						trips.push_back(Trip(cur1, cur, valy ));
 					}
 					if(z!=Nz-1) {
 						cur = vind(x, y, z+1, c);
-						trips.push_back(Trip(cur, cur, valz ));
+						trips.push_back(Trip(cur1, cur, valz ));
 					}
 					if(z!=0) {
 						cur = vind(x, y, z-1, c);
-						trips.push_back(Trip(cur, cur, valz ));				}
+						trips.push_back(Trip(cur1, cur, valz ));				}
 					}
 			}
 		}

@@ -338,3 +338,403 @@ double ParticlesArray::get_kinetic_energy() const{
 
     return energy;
 }
+
+void ParticlesArray::move(double dt){
+    long jmax = size();
+
+    for (long j = 0; j < jmax; j++ ) {
+        particlesData(j).move(dt);
+    }
+}
+void ParticlesArray::get_velocity(const Mesh& mesh){
+        long jmax = size();
+    double3 E, B, POS;
+    double xx,yy,zz;
+    long xk,yk,zk,indx,indy,indz;
+    long m,n,k;
+    double arg;
+    double snm1,snm2,snm3,snm12,snm13,snm23;
+    constexpr auto SMAX = 2*SHAPE_SIZE;
+    double3 v12,h;
+    double alpha,alpha2,beta;
+
+    alignas(64) double sx[SMAX], sy[SMAX], sz[SMAX];
+    alignas(64) double sdx[SMAX], sdy[SMAX], sdz[SMAX];
+    for (long j = 0; j < jmax; j++ ) {
+        E = 0.;
+        B = 0.;
+        POS = particlesData(j).coord;
+        velocity = particlesData(j).velocity;
+
+        xx = POS.x() / Dx;
+        yy = POS.y() / Dy;
+        zz = POS.z() / Dz;
+
+        xk = long(xx);
+        yk = long(yy);
+        zk = long(zz);
+    
+        for(n = 0; n < SMAX; ++n){
+            arg = -xx + double(xk - CELLS_SHIFT + n);
+            sx[n] = Shape(arg);
+            sdx[n] = Shape(arg + 0.5);
+            arg = -yy + double(yk - CELLS_SHIFT + n);
+            sy[n] = Shape(arg);
+            sdy[n] = Shape(arg + 0.5);
+            arg = -zz + double(zk - CELLS_SHIFT + n);
+            sz[n] = Shape(arg);
+            sdz[n] = Shape(arg + 0.5);
+        }
+        
+    for(n = 0; n < SMAX; ++n){
+            indx = xk + n;
+
+        for(m = 0; m < SMAX; ++m){
+            indy = yk  + m;
+            for(k = 0; k < SMAX; ++k){
+                
+                snm1 = sdx[n] * sy[m] * sz[k];
+                snm2 = sx[n] * sdy[m] * sz[k];
+                snm3 = sx[n] * sy[m] * sdz[k];
+                snm12 = sdx[n] * sdy[m] * sz[k];
+                snm13 = sdx[n] * sy[m] * sdz[k];
+                snm23 = sx[n] * sdy[m] * sdz[k];
+                indz = zk  + k;
+                E.x() += (snm1 * (mesh.fieldE(indx,indy,indz,0) + mesh.fieldEn(indx,indy,indz,0)) );
+                E.y() += (snm2 * (mesh.fieldE(indx,indy,indz,1) + mesh.fieldEn(indx,indy,indz,1)) );
+                E.z() += (snm3 * (mesh.fieldE(indx,indy,indz,2) + mesh.fieldEn(indx,indy,indz,2)) );
+                B.x() += (snm23 * mesh.fieldB(indx,indy,indz,0) );
+                B.y() += (snm13 * mesh.fieldB(indx,indy,indz,1) );
+                B.z() += (snm12 * mesh.fieldB(indx,indy,indz,2) );
+            }
+        }
+    }
+        E*=0.5;
+        beta = Dt * charge / _mass;
+        alpha = 0.5*beta*mag(B);
+        alpha2 = dot(alpha,alpha);
+        h = B / mag(B);
+        
+        v12 = (1/(1.+alpha2 ))*(velocity + alpha2*dot(h,velocity)*h 
+                                + 0.5*beta*( E+alpha*cross(E,h) + 
+                                                alpha2*dot(E,h)) );
+
+        particlesData(k).velocity = 2*v12 - velocity; 
+    }
+}
+
+void ParticlesArray::correctv(const Mesh& mesh){
+    long jmax = size();
+    double3 E,B, POS, v12, velocity;
+    double xx,yy,zz;
+    long xk,yk,zk,indx,indy,indz;
+    long m,n,k;
+    double arg;
+    double snm1,snm2,snm3,snm12,snm13,snm23;
+
+    constexpr auto SMAX = 2*SHAPE_SIZE;
+
+    alignas(64) double sx[SMAX], sy[SMAX], sz[SMAX];
+    alignas(64) double sdx[SMAX], sdy[SMAX], sdz[SMAX];
+    for (long j = 0; j < jmax; j++ ) {
+        E = 0.;
+        B = 0.;
+        POS = particlesData(j).coord;
+
+        xx = POS.x() / Dx;
+        yy = POS.y() / Dy;
+        zz = POS.z() / Dz;
+
+        xk = long(xx);
+        yk = long(yy);
+        zk = long(zz);
+    
+        for(n = 0; n < SMAX; ++n){
+            arg = -xx + double(xk - CELLS_SHIFT + n);
+            sx[n] = Shape(arg);
+            sdx[n] = Shape(arg + 0.5);
+            arg = -yy + double(yk - CELLS_SHIFT + n);
+            sy[n] = Shape(arg);
+            sdy[n] = Shape(arg + 0.5);
+            arg = -zz + double(zk - CELLS_SHIFT + n);
+            sz[n] = Shape(arg);
+            sdz[n] = Shape(arg + 0.5);
+        }
+        
+    for(n = 0; n < SMAX; ++n){
+        indx = xk + n;
+
+        for(m = 0; m < SMAX; ++m){
+            indy = yk  + m;
+            for(k = 0; k < SMAX; ++k){
+                
+                snm1 = sdx[n] * sy[m] * sz[k];
+                snm2 = sx[n] * sdy[m] * sz[k];
+                snm3 = sx[n] * sy[m] * sdz[k];
+                
+                indz = zk  + k;
+                Em.x() += (snm1 * (mesh.fieldE(indx,indy,indz,0) + mesh.fieldEn(indx,indy,indz,0)) );
+                Em.y() += (snm2 * (mesh.fieldE(indx,indy,indz,1) + mesh.fieldEn(indx,indy,indz,1)) );
+                Em.z() += (snm3 * (mesh.fieldE(indx,indy,indz,2) + mesh.fieldEn(indx,indy,indz,2)) );
+            }
+        }
+    }
+
+
+        particlesData(k).velocity = 0.5*Em -  particlesData(k).velocity;
+    }
+}
+void ParticlesArray::get_esirkepov_current( Mesh& mesh){
+    constexpr auto SMAX = 2*SHAPE_SIZE;
+    long xk, yk, zk, n, m, k,indx, indy,indz;
+    double xx, yy, zz, arg;
+    double snm1,snm2,snm3;
+    double xn, yn,zn;
+    alignas(64) double sx[SMAX], sy[SMAX], sz[SMAX];
+    alignas(64) double sx_n[SMAX], sy_n[SMAX], sz_n[SMAX];
+    alignas(64) double jx[SMAX][SMAX][SMAX];
+    alignas(64) double jy[SMAX][SMAX][SMAX];
+    alignas(64) double jz[SMAX][SMAX][SMAX];
+
+    const double rdx = 1. / Dx;
+    const double rdy = 1. / Dy;
+    const double rdz = 1. / Dz;
+    const double conx = Dx / (6*Dt) * mpw;
+    const double cony = Dy / (6*Dt) * mpw;
+    const double conz = Dz / (6*Dt) * mpw;
+
+
+    long jmax = size();
+    long q = charge;
+
+    for (long j = 0; j < jmax; j++ ) {
+        
+        POS = particlesData(j).startCoord;
+        POS_n = particlesData(j).coord;
+
+        xx = POS.x() / Dx;
+        yy = POS.y() / Dy;
+        zz = POS.z() / Dz;
+
+        xn = POS_n.x() / Dx;
+        yn = POS_n.y() / Dy;
+        zn = POS_n.z() / Dz;
+        
+        POS = POS_n;
+
+        xk = long(xx);
+        yk = long(yy);
+        zk = long(zz);
+
+        for(n = 0; n < SMAX; ++n){
+            for(m = 0; m < SMAX; ++m){
+                for(k = 0; k < SMAX; ++k){
+                    jx[n][m][k] = 0.;
+                    jy[n][m][k] = 0.;
+                    jz[n][m][k] = 0.;
+                }
+            }
+        }
+
+        for(n = 0; n < SMAX; ++n){
+            arg = -xx + double(xk - CELLS_SHIFT + n);
+            sx[n] = Shape(arg)/ Dx;
+            arg = -yy + double(yk - CELLS_SHIFT + n);
+            sy[n] = Shape(arg)/ Dy;
+            arg = -zz + double(zk - CELLS_SHIFT + n);
+            sz[n] = Shape(arg)/ Dz;            
+            arg = -xn + double(xk - CELLS_SHIFT + n);
+            sx_n[n] = Shape(arg)/ Dx;
+            arg = -yn + double(yk - CELLS_SHIFT + n);
+            sy_n[n] = Shape(arg)/ Dy;
+            arg = -zn + double(zk - CELLS_SHIFT + n);
+            sz_n[n] = Shape(arg)/ Dz;
+        }
+
+        for(n = 0; n < SMAX; ++n){
+            indx = xk  + n;
+            for(m = 0; m < SMAX; ++m){
+                indy = yk + m;
+                for(k = 0; k < SMAX; ++k){
+              
+                    if(n == 0) jx[n][m][k] = -q * conx * (sx_n[n] - sx[n]) *  (sy_n[m] * (2*sz_n[k] + sz[k]) + sy[m] * (2 * sz[k] + sz_n[k]));
+
+                    if(n > 0 && n < SMAX-1) jx[n][m][k] = jx[n-1][m][k] - q * conx * (sx_n[n] - sx[n]) *  (sy_n[m] * (2*sz_n[k] + sz[k]) + sy[m] * (2 * sz[k] + sz_n[k]));
+                    
+                    if(m == 0) jy[n][m][k] = -q * cony * (sy_n[m] - sy[m]) *(sx_n[n] * (2*sz_n[k] + sz[k]) + sx[n] * (2 * sz[k] + sz_n[k]));
+                    if(m > 0 && m < SMAX-1) jy[n][m][k] = jy[n][m-1][k] -q * cony * (sy_n[m] - sy[m]) *(sx_n[n] * (2*sz_n[k] + sz[k]) + sx[n] * (2 * sz[k] + sz_n[k]));
+                    
+                    if(k == 0) jz[n][m][k] = -q * conz * (sz_n[k] - sz[k]) * (sy_n[m] * (2*sx_n[n] + sx[n]) + sy[m] * (2 * sx[n] + sx_n[n]));
+                    if(k > 0 && k < SMAX-1) jz[n][m][k] = jz[n][m][k-1]-q * conz  * (sz_n[k] - sz[k]) * (sy_n[m] * (2*sx_n[n] + sx[n]) + sy[m] * (2 * sx[n] + sx_n[n]));
+                
+                    indz = zk + k;
+                
+                    mesh.fieldJ(indx,indy,indz,0) += jx[n][m][k];
+                    mesh.fieldJ(indx,indy,indz,1) += jy[n][m][k];
+                    mesh.fieldJ(indx,indy,indz,2) += jz[n][m][k];
+                }
+            }
+        }
+    }
+}
+void ParticlesArray::get_current_predict( Mesh& mesh){
+    long jmax = size();
+
+    for (long j = 0; j < jmax; j++ ) {
+
+
+    double3 h, B, POS;
+    double xx,yy,zz;
+    long xk,yk,zk,indx,indy,indz;
+    long m,n,k;
+    double arg;
+    double snm1,snm2,snm3,snm12,snm13,snm23;
+    constexpr auto SMAX = 2*SHAPE_SIZE;
+    double alpha,alpha2,beta;
+
+    alignas(64) double sx[SMAX], sy[SMAX], sz[SMAX];
+    alignas(64) double sdx[SMAX], sdy[SMAX], sdz[SMAX];
+    for (long j = 0; j < jmax; j++ ) {
+        B = 0.;
+        POS = particlesData(j).coord;
+        velocity = particlesData(j).velocity;
+
+        xx = POS.x() / Dx;
+        yy = POS.y() / Dy;
+        zz = POS.z() / Dz;
+
+        xk = long(xx);
+        yk = long(yy);
+        zk = long(zz);
+    
+        for(n = 0; n < SMAX; ++n){
+            arg = -xx + double(xk - CELLS_SHIFT + n);
+            sx[n] = Shape(arg);
+            sdx[n] = Shape(arg + 0.5);
+            arg = -yy + double(yk - CELLS_SHIFT + n);
+            sy[n] = Shape(arg);
+            sdy[n] = Shape(arg + 0.5);
+            arg = -zz + double(zk - CELLS_SHIFT + n);
+            sz[n] = Shape(arg);
+            sdz[n] = Shape(arg + 0.5);
+        }
+        
+        for(n = 0; n < SMAX; ++n){
+                indx = xk + n;
+
+            for(m = 0; m < SMAX; ++m){
+                indy = yk  + m;
+                for(k = 0; k < SMAX; ++k){
+
+                    snm12 = sdx[n] * sdy[m] * sz[k];
+                    snm13 = sdx[n] * sy[m] * sdz[k];
+                    snm23 = sx[n] * sdy[m] * sdz[k];
+                    indz = zk  + k;
+                    B.x() += (snm23 * mesh.fieldB(indx,indy,indz,0) );
+                    B.y() += (snm13 * mesh.fieldB(indx,indy,indz,1) );
+                    B.z() += (snm12 * mesh.fieldB(indx,indy,indz,2) );
+                }
+            }
+        }
+        
+        beta = Dt * charge / _mass;
+        alpha = 0.5*beta*mag(B);
+        alpha2 = dot(alpha,alpha);
+        h = B / mag(B);
+
+        J = charge / (1.+alpha2) * (velocity+alpha2*dot(h,v)*h );
+        
+        for(n = 0; n < SMAX; ++n){
+            indx = xk  + n;
+            for(m = 0; m < SMAX; ++m){
+                indy = yk + m;
+                for(k = 0; k < SMAX; ++k){
+                
+                    indz = zk + k;
+
+                    snm1 = sdx[n] * sy[m] * sz[k];
+                    snm2 = sx[n] * sdy[m] * sz[k];
+                    snm3 = sx[n] * sy[m] * sdz[k];
+                    mesh.fieldJ(indx,indy,indz,0) += snm1*J.x();
+                    mesh.fieldJ(indx,indy,indz,1) += snm2*J.y();
+                    mesh.fieldJ(indx,indy,indz,2) += snm3*J.z();
+                }
+            }
+        }
+
+    }
+}
+
+void ParticlesArray::get_L( Mesh& mesh){
+        long jmax = size();
+
+    for (long j = 0; j < jmax; j++ ) {
+
+
+        POS = particlesData(j).coord;
+
+        xx = POS.x() / Dx;
+        yy = POS.y() / Dy;
+        zz = POS.z() / Dz;
+
+        xk = long(xx);
+        yk = long(yy);
+        zk = long(zz);
+    
+        for(n = 0; n < SMAX; ++n){
+            arg = -xx + double(xk - CELLS_SHIFT + n);
+            sx[n] = Shape(arg);
+            sdx[n] = Shape(arg + 0.5);
+            arg = -yy + double(yk - CELLS_SHIFT + n);
+            sy[n] = Shape(arg);
+            sdy[n] = Shape(arg + 0.5);
+            arg = -zz + double(zk - CELLS_SHIFT + n);
+            sz[n] = Shape(arg);
+            sdz[n] = Shape(arg + 0.5);
+        }
+        for(n = 0; n < SMAX; ++n){
+                indx = xk + n;
+
+            for(m = 0; m < SMAX; ++m){
+                indy = yk  + m;
+                for(k = 0; k < SMAX; ++k){
+
+                    snm12 = sdx[n] * sdy[m] * sz[k];
+                    snm13 = sdx[n] * sy[m] * sdz[k];
+                    snm23 = sx[n] * sdy[m] * sdz[k];
+                    indz = zk  + k;
+                    B.x() += (snm23 * mesh.fieldB(indx,indy,indz,0) );
+                    B.y() += (snm13 * mesh.fieldB(indx,indy,indz,1) );
+                    B.z() += (snm12 * mesh.fieldB(indx,indy,indz,2) );
+                }
+            }
+        }
+
+        for(n = 0; n < SMAX; ++n){
+            indx = xk  + n;
+            for(m = 0; m < SMAX; ++m){
+                indy = yk + m;
+                for(k = 0; k < SMAX; ++k){
+                
+                    indz = zk + k;
+
+                    snm1 = sdx[n] * sy[m] * sz[k];
+                    snm2 = sx[n] * sdy[m] * sz[k];
+                    snm3 = sx[n] * sy[m] * sdz[k];
+                    for(n1 = 0; n1 < SMAX; ++n1){
+                        indx1 = xk  + n1;
+                        for(m1 = 0; m1 < SMAX; ++m1){
+                            indy1 = yk + m1;
+                            for(k1 = 0; k1 < SMAX; ++k1){
+                                snm11 = sdx[n1] * sy[m1] * sz[k1];
+                                indz1 = zk + k1;
+                                trip(vind(indx,indy,indz,0),vind(), snm1*snm11*val );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+}

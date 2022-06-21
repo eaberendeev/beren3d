@@ -229,8 +229,8 @@ inline double Shape2(const double& dist){
   
     return E;
 }*/
-/*
-double3 Mesh::get_fieldE_in_pos(const double3& r)  const{
+
+double3 Mesh::get_fieldE_in_pos(const Field3d& fieldE,const double3& r) {
     constexpr auto SMAX = 2*SHAPE_SIZE;
     double sx[SMAX], sy[SMAX],sz[SMAX];
     double sdx[SMAX], sdy[SMAX], sdz[SMAX];
@@ -278,8 +278,9 @@ double3 Mesh::get_fieldE_in_pos(const double3& r)  const{
       }
     }
     return ep;
-}*/
-double3 get_fieldE_in_pos(const Field3d& fieldE,const double3& r) {
+}
+
+double3 get_fieldE_in_pos_lin(const Field3d& fieldE,const double3& r) {
 
     double3 E;
     long indx, indy,indz,indx1, indy1,indz1;
@@ -337,7 +338,7 @@ double3 get_fieldE_in_pos(const Field3d& fieldE,const double3& r) {
 
     return E;
 }
-double3 get_fieldB_in_pos(const Field3d& fieldB, const double3& r) {
+double3 get_fieldB_in_pos_lin(const Field3d& fieldB, const double3& r) {
 
     double3 B;
     long indx, indy,indz,indx1, indy1,indz1;

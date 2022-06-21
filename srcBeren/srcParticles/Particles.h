@@ -9,6 +9,9 @@
 struct ParticleSimple{
 	double3 coord;
     double3 pulse;
+    double3 velocity;
+    double3 startCoord;
+
 	friend std::ostream& operator<<(std::ostream& out, const ParticleSimple &particle);
     
     void set_global(const Region& domain){
@@ -16,6 +19,9 @@ struct ParticleSimple{
     }
     void set_local(const Region& domain){
         coord.x() -= domain.origin;      
+    }
+    void move(double dt){
+        coord += velocity * dt
     }
 };
 
@@ -132,6 +138,15 @@ public:
         return injectionEnergy;
     }
     void move(Mesh& mesh,long timestep);
+    void move(double dt);
+    void correctv(const Mesh& mesh);
+    void get_velocity(const Mesh& mesh);
+    void get_esirkepov_current( Mesh& mesh);
+    void get_current_predict( Mesh& mesh);
+    void get_L( Mesh& mesh);
+
+
+
     void move_virt(Mesh& mesh,long timestep);
     void bound_resumption(const Particle& particle, const double3& r_new, const double3& p_new);
 
