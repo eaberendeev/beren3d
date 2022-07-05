@@ -54,8 +54,8 @@ PlasmaCellsX_glob = 50 # Number of cells for Plasma on Z
 PlasmaCellsY_glob = 20 # Number of cells for Plasma on R 
 PlasmaCellsZ_glob = 20 # Number of cells for Plasma on R 
 
-NumCellsY_glob = 100 # NumbeY of all cells in computation domain on R
-NumCellsZ_glob = 100 # NumbeY of all cells in computation domain on R
+NumCellsY_glob = 50 # NumbeY of all cells in computation domain on R
+NumCellsZ_glob = 50 # NumbeY of all cells in computation domain on R
 
 damp = 10
 DampCellsX_glob = [damp,damp] # Number of Damping layer cells on Z
@@ -69,7 +69,7 @@ NumCellsX_glob = PlasmaCellsX_glob + DampCellsX_glob[0]+DampCellsX_glob[1] # Num
 
 
 NumPartPerLine = 0 # Number of particles per line segment cell 
-NumPartPerCell = 2 #NumPartPerLine**3 # Number of particles per cell
+NumPartPerCell = 1 #NumPartPerLine**3 # Number of particles per cell
 
 MaxTime = 30 # in 1/w_p
 RecTime = 10090 #

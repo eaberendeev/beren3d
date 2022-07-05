@@ -7,8 +7,8 @@
 //#include "Coil.h"
 
 
-Mesh::Mesh(const World& world) : 
-          fieldE(world.region.numNodes,3),fieldB(world.region.numNodes,3),
+Mesh::Mesh(const World& world) : Lmat(world.region.total_size()*3,world.region.total_size()*3 ),
+          fieldE(world.region.numNodes,3),fieldEn(world.region.numNodes,3),fieldB(world.region.numNodes,3),
           fieldJ(world.region.numNodes,3),fieldB0(world.region.numNodes,3), _world(world){
     
     if (RECOVERY){ 
@@ -17,8 +17,10 @@ Mesh::Mesh(const World& world) :
     else{
       set_fields();
     }
-
-  //  std::vector< std::vector<std::string> > stringParams;
+    _size1 = world.region.numNodes.x();
+    _size2 = world.region.numNodes.y();
+     _size3 = world.region.numNodes.z();
+      _nd = 3;  //  std::vector< std::vector<std::string> > stringParams;
   //  read_params_to_string("Lasers","./LasParams.cfg",stringParams);
   //  for( const auto &params  : stringParams){
   //      lasers.emplace_back(params);
@@ -230,7 +232,7 @@ inline double Shape2(const double& dist){
     return E;
 }*/
 
-double3 Mesh::get_fieldE_in_pos(const Field3d& fieldE,const double3& r) {
+double3 get_fieldE_in_pos(const Field3d& fieldE,const double3& r) {
     constexpr auto SMAX = 2*SHAPE_SIZE;
     double sx[SMAX], sy[SMAX],sz[SMAX];
     double sdx[SMAX], sdy[SMAX], sdz[SMAX];
@@ -272,7 +274,9 @@ double3 Mesh::get_fieldE_in_pos(const Field3d& fieldE,const double3& r) {
           indy = yk - CELLS_SHIFT + m;
           indz = zk - CELLS_SHIFT + k; 
             
-          ep += double3(snm1,snm2,snm3) * fieldE(indx,indy,indz);
+          ep.x() += snm1 * fieldE(indx,indy,indz,0);
+          ep.y() += snm2 * fieldE(indx,indy,indz,1);
+          ep.z() += snm3 * fieldE(indx,indy,indz,2);
 
         }
       }
@@ -338,7 +342,7 @@ double3 get_fieldE_in_pos_lin(const Field3d& fieldE,const double3& r) {
 
     return E;
 }
-double3 get_fieldB_in_pos_lin(const Field3d& fieldB, const double3& r) {
+double3 get_fieldB_in_pos(const Field3d& fieldB, const double3& r) {
 
     double3 B;
     long indx, indy,indz,indx1, indy1,indz1;
@@ -447,3 +451,7 @@ void Mesh::laser_source(long timestep){
     } */
   
 }
+
+// void Mesh::get_M(){
+
+// }

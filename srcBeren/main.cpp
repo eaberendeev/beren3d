@@ -1,3 +1,8 @@
+// Author: Evgeny Berendeev
+// Budker Institute of Nuclear Physics of Siberian Branch Russian Academy of Sciences
+// beren@inp.nsk.su
+// (c) 2019-2022
+
 #include "World.h"
 #include "Particles.h"
 #include "Mesh.h"
@@ -36,31 +41,36 @@ int main(int argc,char **argv){
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	Timer globalTimer("globalFunctions.time");
-	for(auto timestep = StartTimeStep + 1; timestep <= MaxTimeStep; ++timestep){
+	for(auto timestep = StartTimeStep + 1; timestep <= 1; ++timestep){
 
-		mesh.prepare();
+		//mesh.prepare();
 
 		for( auto &sp  : species){
 			sp.move(0.5*Dt); //  +++ x_n -> x_{n+1/2}
-			sp.get_current_predict(mesh); // +++ get J(x_{n+1/2},v_n)_predict 
-			sp.get_L(mesh); // --- get Lgg'(x_{n+1/2}) 
+			//sp.get_current_predict(mesh); // +++ get J(x_{n+1/2},v_n)_predict 
+			sp.get_L(mesh); // +++ get Lgg'(x_{n+1/2}) 
 		}
 		
-		mesh.solveE_predict(); // --- solve A*E'_{n+1}=f(E_n, B_n, J(x_{n+1/2})). mesh consist En, En+1_predict
+		//mesh.solveE_predict(); // --- solve A*E'_{n+1}=f(E_n, B_n, J(x_{n+1/2})). mesh consist En, En+1_predict
 		
 		for( auto &sp  : species){
 
-			sp.get_velocity(mesh); // +++ get v'_{n+1} from v_{n} and E'_{n+1}
+		//	sp.get_velocity(mesh); // +++ get v'_{n+1} from v_{n} and E'_{n+1}
 			sp.move(0.5*Dt); // +++ x_{n+1/2} -> x_{n+1}
-			sp.get_esirkepov_current(mesh); // ++++ get J_e(x_n,x_{n+1}) from Esirkepov
+		//	sp.get_esirkepov_current(mesh); // ++++ get J_e(x_n,x_{n+1}) from Esirkepov
 		}
 		
-		mesh.correctE(); // ---- get E_{n+1} from E'_{n+1}, J_e and J_predict. mesh En changed to En+1_final 
+		//mesh.correctE(); // ---- get E_{n+1} from E'_{n+1}, J_e and J_predict. mesh En changed to En+1_final 
 
 
 		for( auto &sp  : species){
-			sp.correctv(mesh); // ++++ get v_{n+1} final from v'_{n+1}
-		}
+	//		sp.correctv(mesh); // ++++ get v_{n+1} final from v'_{n+1}
+	    long jmax = sp.size();
+
+	   // for (long j = 0; j < jmax; j++ ) {
+	        std::cout<< jmax << "\n";// sp.particlesData(j) << "\n";
+	   // }
+    	}
 		//mesh.clear();
 
   		//globalTimer.start("Collision");

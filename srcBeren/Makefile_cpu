@@ -1,6 +1,6 @@
 CXX = mpicxx
 source_dirs := . srcFields srcParticles srcDiagnostics
-EIGEN_INCLUDE_PATH=-isystem ../../../../eigen/
+EIGEN_INCLUDE_PATH=-isystem ../../../eigen/
 
 search_wildcards       := $(addsuffix /*.cpp,$(source_dirs)) 
 override compile_flags += -Wall -pipe -std=c++11 -cxx=g++ -O3 

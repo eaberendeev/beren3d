@@ -26,17 +26,20 @@ void exchange_fieldsE(Field3d& field,const MPI_Topology &MPIconf);
 struct Mesh{
     Mesh(const World& world);
 
-    Operator identity;
+    Operator Lmat;
 
     //Sources and fields on the grid
     Field3d chargeDensity;
 
     Field3d fieldE;
+    Field3d fieldEn;
     Field3d fieldB;
     Field3d fieldJ;
 
     Field3d fieldB0;
-    
+    int vind(long i, long j, long k, long d) const {
+        return d + _nd*(i * _size2 * _size3 + j * _size3 + k);
+    };
     void set_fields();
 
     void set_uniform_fields();
@@ -79,6 +82,7 @@ struct Mesh{
     }
 protected:
     const World &_world;
+    long _size1, _size2, _size3, _nd;
 };
 
 

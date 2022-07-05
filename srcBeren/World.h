@@ -55,6 +55,9 @@ struct Region {
         return indx - round(origin / Dx);
     }
     Region();
+    long total_size() const {
+        return numNodes.x()*numNodes.y()*numNodes.z(); 
+    };
 };
 
 Region split_region(const Region& regionGlob, int rank, int splitSize);

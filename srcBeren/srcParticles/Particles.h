@@ -6,6 +6,8 @@
 #include <functional>
 #include <assert.h>
 
+typedef Eigen::Triplet<double> Trip;
+
 struct ParticleSimple{
 	double3 coord;
     double3 pulse;
@@ -21,7 +23,7 @@ struct ParticleSimple{
         coord.x() -= domain.origin;      
     }
     void move(double dt){
-        coord += velocity * dt
+        coord += velocity * dt;
     }
 };
 

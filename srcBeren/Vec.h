@@ -15,6 +15,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <assert.h>
+
+typedef Eigen::SparseMatrix<double, Eigen::ColMajor> Operator;
+
+
+
 using  ulog = unsigned long;
 // *** vec2 ****
 template <typename T>

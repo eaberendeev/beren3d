@@ -16,21 +16,8 @@ then
 fi
 
 
-echo "......Copy files to work directory......"   
-   rm *.tmp
-   rm -r $WorkDir
-   mkdir $WorkDir
-   cp -r PlotScripts ./$WorkDir
-   cp -r srcBeren ./$WorkDir
-   cp -r Scripts ./$WorkDir
-   cp -r Clusters ./$WorkDir
-   cp -r Recovery ./$WorkDir
-   mv *.h ./$WorkDir/srcBeren
-   mv *.par ./$WorkDir/srcBeren
-   cp *.py ./$WorkDir
-   mv *.cfg ./$WorkDir
-   cp *.sh ./$WorkDir
-   cd ./$WorkDir
+   mv *.h ./srcBeren
+   mv *.par ./srcBeren
 
 echo "......Compile......"
 cd srcBeren
@@ -41,12 +28,28 @@ module purge
 module load intel/2017.4.196 parallel/mpi.intel.broadwell/2017.4.196 compilers/intel/2017.4.196
 fi 
 
-make -f Makefile_cpu clean
+#make -f Makefile_cpu clean
 make -f Makefile_cpu
 echo "......End compile......"
 ls | grep $name
 cp $name ../
 cd ..
+
+
+echo "......Copy files to work directory......"   
+   rm *.tmp
+   rm -r $WorkDir
+   mkdir $WorkDir
+   cp -r PlotScripts ./$WorkDir
+   cp -r srcBeren ./$WorkDir
+   cp -r Scripts ./$WorkDir
+   cp -r Clusters ./$WorkDir
+   cp -r Recovery ./$WorkDir
+   cp *.py ./$WorkDir
+   mv *.cfg ./$WorkDir
+   cp *.sh ./$WorkDir
+   cp $name ./$WorkDir
+   cd ./$WorkDir
 
 if [[ $queue = home ]]
 then
