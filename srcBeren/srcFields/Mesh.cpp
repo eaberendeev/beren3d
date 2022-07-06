@@ -452,6 +452,140 @@ void Mesh::laser_source(long timestep){
   
 }
 
-// void Mesh::get_M(){
+ void Mesh::get_M(){ // !!!!! needs bound condition and if cases!!!!!!
+    std::vector<Trip> trips;
+    long totalSize = fieldE.capacity();
+    trips.reserve(totalSize*3);
+    double val;
 
-// }
+    const auto size = fieldE.size();
+    
+    for(long i = 0; i < size.x(); i++){
+      for(long j = 0; j < size.x(); j++){
+        for(long k = 0; k < size.x(); k++){
+
+          /////  MX  /////
+          // Mxx
+          val = 1. - 0.25*Dt*Dt*(-2/(Dy*Dy*)-2/(Dz*Dz));
+          // Ex i+1/2,j,k
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i,j,k,0),val));
+          val = 0.25*Dt*Dt*(Dy*Dy);
+          // Ex i+1/2,j+1,k
+          if (j != size.y() )
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i,j+1,k,0),-val));
+          // Ex i+1/2,j-1,k          
+          if (j!=0)
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i,j-1,k,0),-val));
+          val = 0.25*Dt*Dt*(Dz*Dz);
+          // Ex i+1/2,j,k+1
+          if (k != size.z() )
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i,j,k+1,0),-val));
+          // Ex i+1/2,j,k-1          
+          if (k!=0)
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i,j,k-1,0),-val));
+
+          //Mxy
+          val = 0.25*Dt*Dt*(Dx*Dy);
+          // Ey i,j+1/2,k
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i,j,k,1),val));
+          // Ey i+1,j+1/2,k
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i+1,j,k,1),-val));
+          // Ey i,j-1/2,k
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i,j-1,k,1),-val));
+          // Ey i+1,j-1/2,k
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i+1,j-1,k,1),val));
+          //Mxz
+          val = 0.25*Dt*Dt*(Dx*Dz);
+          // Ez i,j,k+1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i,j,k,2),val));
+          // Ez i+1,j,k+1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i+1,j,k,2),-val));
+          // Ez i,j,k-1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i,j,k-1,2),-val));
+          // Ez i+1,j,k-1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,0),mesh.vind(i+1,j,k-1,2),val));
+
+          /////  MY  /////
+          // Myy
+          val = 1. - 0.25*Dt*Dt*(-2/(Dx*Dx*)-2/(Dz*Dz));
+          // Ey i,j+1/2,k
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i,j,k,1),val));
+          val = 0.25*Dt*Dt*(Dx*Dx);
+          // Ey i+1,j+1/2,k
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i+1,j,k,1),-val));
+          // Ey i-1,j+1/2,k
+          val = 0.25*Dt*Dt*(Dz*Dz);
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i-1,j,k,1),-val));
+          // Ey i,j+1/2,k+1
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i,j,k+1,1),-val));
+          // Ey i,j+1/2,k-1
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i,j,k-1,1),-val));
+
+
+          // Myx
+          val = 0.25*Dt*Dt*(Dy*Dx);
+          // Ex i+1/2,j,k
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i,j,k,0),val));     
+          // Ex i+1/2,j+1,k     
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i,j+1,k,0),-val));          
+          // Ex i-1/2,j,k
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i-1,j,k,0),-val));          
+          // Ex i-1/2,j+1,k
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i-1,j+1,k,0),val));          
+          
+          // Myz
+          val = 0.25*Dt*Dt*(Dy*Dz);
+          // Ez i,j,k+1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i,j,k,2),val));     
+          // Ez i,j+1,k+1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i,j+1,k,2),-val));     
+          // Ez i,j,k-1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i,j,k-1,2),-val));               
+          // Ez i,j+1,k-1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,1),mesh.vind(i,j+1,k-1,2),val));     
+
+
+          /////  MZ  /////
+          // Mzz
+          val = 1. - 0.25*Dt*Dt*(-2/(Dx*Dx*)-2/(Dy*Dy));
+          // Ez i,j,k+1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i,j,k,2),val));
+          // Ez i+1,j,k+1/2
+          val = 0.25*Dt*Dt*(Dx*Dx);
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i+1,j,k,2),-val));
+          // Ez i-1,j,k+1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i-1,j,k,2),-val));
+          val = 0.25*Dt*Dt*(Dy*Dy);
+          // Ez i,j+1,k+1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i,j+1,k,2),-val));
+          // Ez 1,j-1,k+1/2
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i,j-1,k,2),-val));
+          
+          // Mzx
+          val = 0.25*Dt*Dt*(Dz*Dx);
+          // Ex i+1/2,j,k
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i,j,k,0),val));
+          // Ex i-1/2,j,k
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i-1,j,k,0),-val));
+          // Ex i+1/2,j,k+1
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i,j,k+1,0),-val));
+          // Ex i-1/2,j,k+1
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i-1,j,k+1,0),val));
+
+          // Mzy          
+          val = 0.25*Dt*Dt*(Dz*Dy);
+          // Ey i,j+1/2,k
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i,j,k,1),val));
+          // Ey i,j-1/2,k
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i,j-1,k,1),-val));
+          // Ey i,j+1/2,k+1
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i,j,k+1,1),-val));
+          // Ey i,j-1/2,k+1
+          trips.push_back(Trip(mesh.vind(i,j,k,2),mesh.vind(i,j-1,k+1,1),val));
+
+        }
+      }
+    }
+        mesh.Lmat.setFromTriplets(trips.begin(), trips.end());
+
+ }
